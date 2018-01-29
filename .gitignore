@@ -2,5 +2,6 @@
 venv/
 source/lextab.py
 source/parsetab.py
+source/parser.out
 __pycache__/
 tests/
