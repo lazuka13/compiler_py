@@ -1,0 +1,6 @@
+.idea
+venv/
+source/lextab.py
+source/parsetab.py
+__pycache__/
+tests/
