@@ -24,8 +24,8 @@ class ClassDecl(Visitable):
         Visitable.__init__(self, place)
         self.id = id
         self.extends = extends
-        self.var_decl_list = vars.var_decl_list if vars is not None else None
-        self.method_decl_list = methods.method_decl_list if methods is not None else None
+        self.var_decl_list = vars.var_decl_list if vars is not None else []
+        self.method_decl_list = methods.method_decl_list if methods is not None else []
 
 
 class ClassDeclList:
@@ -42,7 +42,7 @@ class MainClass(Visitable):
         Visitable.__init__(self, place)
         self.id = id
         self.param_id = param_id
-        self.statement_list = statements.statement_list if statements is not None else None
+        self.statement_list = statements.statement_list if statements is not None else []
 
 
 class MethodDecl(Visitable):
@@ -51,9 +51,10 @@ class MethodDecl(Visitable):
         self.modifier = modifier
         self.type_of = type_of
         self.id = id
-        self.arg_decl_list = args.arg_decl_list if args is not None else None
-        self.var_decl_list = vars.var_decl_list if vars is not None else None
-        self.statement_list = statements.statement_list if statements is not None else None
+        self.arg_decl_list = args.arg_decl_list if args is not None else []
+        self.var_decl_list = vars.var_decl_list if vars is not None else []
+        self.statement_list = statements.statement_list if statements is not None else []
+
         self.result = result
 
 
