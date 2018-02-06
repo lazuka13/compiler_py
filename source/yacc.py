@@ -1,6 +1,7 @@
 import ply.yacc as yacc
-from source.syntax_tree import *
-from source.lex import tokens
+from lex import tokens
+
+import syntax_tree as ast
 
 precedence = (
     ('left', 'OR'),
@@ -16,9 +17,21 @@ precedence = (
 
 start = 'start'
 
+text = None
 
-def get_place(p):
-    return p.lineno(0), p.lexpos(0)
+
+def get_pos(p):
+    x = find_column(p.lexpos(0))
+    y = p.lineno(0)
+    return x, y
+
+
+def find_column(lex_pos):
+    last_cr = text.rfind('\n', 0, lex_pos)
+    if last_cr < 0:
+        last_cr = 0
+    column = (lex_pos - last_cr) + 1
+    return column
 
 
 def p_goal(p):
@@ -27,9 +40,9 @@ def p_goal(p):
           | main_class
     """
     if len(p) == 2:
-        p[0] = Program(p[1], None, get_place(p))
+        p[0] = ast.Program(p[1], None, ast.Position(*get_pos(p)))
     else:
-        p[0] = Program(p[1], p[2], get_place(p))
+        p[0] = ast.Program(p[1], p[2], ast.Position(*get_pos(p)))
     return p[0]
 
 
@@ -37,7 +50,7 @@ def p_main_class(p):
     """
     main_class : CLASS id L_BRACKET PUBLIC STATIC_VOID_MAIN L_ROUND STRING L_SQUARE R_SQUARE id R_ROUND L_BRACKET statement_s R_BRACKET R_BRACKET
     """
-    p[0] = MainClass(p[2], p[10], p[13], get_place(p))
+    p[0] = ast.MainClass(p[2], p[10], p[13], ast.Position(*get_pos(p)))
 
 
 def p_class_s(p):
@@ -46,9 +59,9 @@ def p_class_s(p):
             | class
     """
     if len(p) == 2:
-        p[0] = ClassDeclList(p[1], None)
+        p[0] = ast.ClassDeclList(p[1], None)
     else:
-        p[0] = ClassDeclList(p[2], p[1])
+        p[0] = ast.ClassDeclList(p[2], p[1])
 
 
 def p_class(p):
@@ -64,22 +77,22 @@ def p_class(p):
     """
     if p[3] != 'extends':
         if isinstance(p[4], str):
-            p[0] = ClassDecl(p[2], None, None, None, get_place(p))
+            p[0] = ast.ClassDecl(p[2], None, None, None, ast.Position(*get_pos(p)))
         elif len(p) == 7:
-            p[0] = ClassDecl(p[2], None, p[4], p[5], get_place(p))
-        elif isinstance(p[4], VarDeclList):
-            p[0] = ClassDecl(p[2], None, p[4], None, get_place(p))
-        elif isinstance(p[4], MethodDeclList):
-            p[0] = ClassDecl(p[2], None, None, p[4], get_place(p))
+            p[0] = ast.ClassDecl(p[2], None, p[4], p[5], ast.Position(*get_pos(p)))
+        elif isinstance(p[4], ast.VarDeclList):
+            p[0] = ast.ClassDecl(p[2], None, p[4], None, ast.Position(*get_pos(p)))
+        elif isinstance(p[4], ast.MethodDeclList):
+            p[0] = ast.ClassDecl(p[2], None, None, p[4], ast.Position(*get_pos(p)))
     else:
         if isinstance(p[6], str):
-            p[0] = ClassDecl(p[2], p[4], None, None, get_place(p))
+            p[0] = ast.ClassDecl(p[2], p[4], None, None, ast.Position(*get_pos(p)))
         elif len(p) == 9:
-            p[0] = ClassDecl(p[2], p[4], p[6], p[7], get_place(p))
-        elif isinstance(p[6], VarDeclList):
-            p[0] = ClassDecl(p[2], p[4], p[6], None, get_place(p))
-        elif isinstance(p[6], MethodDeclList):
-            p[0] = ClassDecl(p[2], p[4], None, p[7], get_place(p))
+            p[0] = ast.ClassDecl(p[2], p[4], p[6], p[7], ast.Position(*get_pos(p)))
+        elif isinstance(p[6], ast.VarDeclList):
+            p[0] = ast.ClassDecl(p[2], p[4], p[6], None, ast.Position(*get_pos(p)))
+        elif isinstance(p[6], ast.MethodDeclList):
+            p[0] = ast.ClassDecl(p[2], p[4], None, p[6], ast.Position(*get_pos(p)))
 
 
 def p_var_s(p):
@@ -88,16 +101,16 @@ def p_var_s(p):
           | var
     """
     if len(p) == 2:
-        p[0] = VarDeclList(p[1], None)
+        p[0] = ast.VarDeclList(p[1], None)
     else:
-        p[0] = VarDeclList(p[2], p[1])
+        p[0] = ast.VarDeclList(p[2], p[1])
 
 
 def p_var(p):
     """
     var : type id SEMICOLON
     """
-    p[0] = VarDecl(p[1], p[2], get_place(p))
+    p[0] = ast.VarDecl(p[1], p[2], ast.Position(*get_pos(p)))
 
 
 def p_method_s(p):
@@ -106,9 +119,9 @@ def p_method_s(p):
              | method
     """
     if len(p) == 2:
-        p[0] = MethodDeclList(p[1], None)
+        p[0] = ast.MethodDeclList(p[1], None)
     else:
-        p[0] = MethodDeclList(p[2], p[1])
+        p[0] = ast.MethodDeclList(p[2], p[1])
 
 
 def p_method(p):
@@ -119,13 +132,13 @@ def p_method(p):
            | modifier type id L_ROUND arg_s R_ROUND L_BRACKET RETURN exp SEMICOLON R_BRACKET
     """
     if isinstance(p[8], str):
-        p[0] = MethodDecl(p[1], p[2], p[3], p[5], None, None, p[9], get_place(p))
+        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], None, None, p[9], ast.Position(*get_pos(p)))
     elif len(p) == 14:
-        p[0] = MethodDecl(p[1], p[2], p[3], p[5], p[8], p[9], p[11], get_place(p))
-    elif isinstance(p[8], VarDeclList):
-        p[0] = MethodDecl(p[1], p[2], p[3], p[5], p[8], None, p[10], get_place(p))
+        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], p[8], p[9], p[11], ast.Position(*get_pos(p)))
+    elif isinstance(p[8], ast.VarDeclList):
+        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], p[8], None, p[10], ast.Position(*get_pos(p)))
     else:
-        p[0] = MethodDecl(p[1], p[2], p[3], p[5], None, p[8], p[10], get_place(p))
+        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], None, p[8], p[10], ast.Position(*get_pos(p)))
 
 
 def p_arg_s(p):
@@ -134,10 +147,10 @@ def p_arg_s(p):
           | arg_s COMMA arg
           | arg
     """
-    if isinstance(p[1], ArgDecl):
-        p[0] = ArgDeclList(p[1], None)
+    if isinstance(p[1], ast.ArgDecl):
+        p[0] = ast.ArgDeclList(p[1], None)
     elif len(p) == 4:
-        p[0] = ArgDeclList(p[3], p[1])
+        p[0] = ast.ArgDeclList(p[3], p[1])
     else:
         p[0] = None
 
@@ -146,7 +159,7 @@ def p_arg(p):
     """
     arg : type id
     """
-    p[0] = ArgDecl(p[1], p[2], get_place(p))
+    p[0] = ast.ArgDecl(p[1], p[2], ast.Position(*get_pos(p)))
 
 
 def p_modifier(p):
@@ -165,13 +178,13 @@ def p_type(p):
          | id
     """
     if len(p) == 4:
-        p[0] = BasicType('int_array')
+        p[0] = ast.BasicType('int_array')
     elif p[1] == 'boolean':
-        p[0] = BasicType('boolean')
+        p[0] = ast.BasicType('boolean')
     elif p[1] == 'int':
-        p[0] = BasicType('int')
+        p[0] = ast.BasicType('int')
     else:
-        p[0] = ClassType(p[1])
+        p[0] = ast.ClassType(p[1])
 
 
 def p_statement_s(p):
@@ -180,9 +193,9 @@ def p_statement_s(p):
                 | statement
     """
     if len(p) == 2:
-        p[0] = StatementList(p[1], None)
+        p[0] = ast.StatementList(p[1], None)
     else:
-        p[0] = StatementList(p[2], p[1])
+        p[0] = ast.StatementList(p[2], p[1])
 
 
 def p_statement(p):
@@ -195,17 +208,17 @@ def p_statement(p):
               | id L_SQUARE exp R_SQUARE EQUALS exp SEMICOLON
     """
     if p[1] == 'if':
-        p[0] = IfStatement(p[3], p[5], p[7], get_place(p))
+        p[0] = ast.IfStatement(p[3], p[5], p[7], ast.Position(*get_pos(p)))
     elif p[1] == 'while':
-        p[0] = WhileStatement(p[3], p[5], get_place(p))
+        p[0] = ast.WhileStatement(p[3], p[5], ast.Position(*get_pos(p)))
     elif p[1] == 'System.out.println':
-        p[0] = PrintLineStatement(p[3], get_place(p))
+        p[0] = ast.PrintLineStatement(p[3], ast.Position(*get_pos(p)))
     elif len(p) == 4:
-        p[0] = Statements(p[2])
+        p[0] = ast.Statements(p[2])
     elif len(p) == 5:
-        p[0] = AssignStatement(p[1], p[3], get_place(p))
+        p[0] = ast.AssignStatement(p[1], p[3], ast.Position(*get_pos(p)))
     else:
-        p[0] = RandomAccessAssignStatement(p[1], p[3], p[6], get_place(p))
+        p[0] = ast.RandomAccessAssignStatement(p[1], p[3], p[6], ast.Position(*get_pos(p)))
 
 
 def p_exp_s(p):
@@ -214,9 +227,9 @@ def p_exp_s(p):
           | exp
     """
     if len(p) == 2:
-        p[0] = ExprList(p[1], None)
+        p[0] = ast.ExprList(p[1], None)
     else:
-        p[0] = ExprList(p[3], p[1])
+        p[0] = ast.ExprList(p[3], p[1])
 
 
 def p_exp(p):
@@ -227,13 +240,13 @@ def p_exp(p):
         | exp DOT id L_ROUND exp_s R_ROUND
     """
     if len(p) == 5:
-        p[0] = RandomAccessExpr(p[1], p[3], get_place(p))
+        p[0] = ast.RandomAccessExpr(p[1], p[3], ast.Position(*get_pos(p)))
     elif len(p) == 4:
-        p[0] = LengthExpr(p[1], get_place(p))
+        p[0] = ast.LengthExpr(p[1], ast.Position(*get_pos(p)))
     elif len(p) == 5:
-        p[0] = CallMethodExpr(p[1], p[3], None, get_place(p))
+        p[0] = ast.CallMethodExpr(p[1], p[3], None, ast.Position(*get_pos(p)))
     else:
-        p[0] = CallMethodExpr(p[1], p[3], p[5], get_place(p))
+        p[0] = ast.CallMethodExpr(p[1], p[3], p[5], ast.Position(*get_pos(p)))
 
 
 def p_exp_vars(p):
@@ -249,21 +262,21 @@ def p_exp_vars(p):
         | L_ROUND exp R_ROUND
     """
     if p[1] == 'True':
-        p[0] = TrueExpr(get_place(p))
+        p[0] = ast.TrueExpr(ast.Position(*get_pos(p)))
     elif p[1] == 'False':
-        p[0] = FalseExpr(get_place(p))
+        p[0] = ast.FalseExpr(ast.Position(*get_pos(p)))
     elif p[1] == 'this':
-        p[0] = ThisExpr(get_place(p))
+        p[0] = ast.ThisExpr(ast.Position(*get_pos(p)))
     elif len(p) == 6:
-        p[0] = NewIntArrExpr(p[4], get_place(p))
+        p[0] = ast.NewIntArrExpr(p[4], ast.Position(*get_pos(p)))
     elif len(p) == 5:
-        p[0] = NewObjectExpr(p[2], get_place(p))
+        p[0] = ast.NewObjectExpr(p[2], ast.Position(*get_pos(p)))
     elif len(p) == 3:
-        p[0] = NotExpr(p[2], get_place(p))
+        p[0] = ast.NotExpr(p[2], ast.Position(*get_pos(p)))
     elif len(p) == 4:
         p[0] = p[2]
     elif isinstance(p[1], int):
-        p[0] = IntegerExpr(p[1], get_place(p))
+        p[0] = ast.IntegerExpr(p[1], ast.Position(*get_pos(p)))
     else:
         p[0] = p[1]
 
@@ -278,23 +291,23 @@ def p_exp_binary_operation(p):
         | exp PERCENT exp
         | exp OR exp
     """
-    p[0] = BinaryExpr(p[1], p[2], p[3], get_place(p))
+    p[0] = ast.BinaryExpr(p[1], p[2], p[3], ast.Position(*get_pos(p)))
 
 
 def p_id(p):
     """
     id : ID
     """
-    p[0] = Id(p[1], get_place(p))
+    p[0] = ast.Id(p[1], ast.Position(*get_pos(p)))
 
 
-def p_empty(p):
+def p_empty(_):
     """empty :"""
     pass
 
 
 def p_error(p):
-    print("Syntax error in input!")
+    print(f"Syntax error in input! Text: {p}")
     exit(1)
 
 
@@ -302,7 +315,8 @@ parser = yacc.yacc()
 
 
 def parse_program(file_path):
+    global text
     with open(file_path) as file:
         text = file.read()
-    result = parser.parse(text)
+    result = parser.parse(text, tracking=True)
     return result

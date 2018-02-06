@@ -1,12 +1,12 @@
-from source.syntax_tree import *
+import syntax_tree as ast
 
-from enum import Enum
 from typing import Optional
+from enum import Enum
 
 
 class Position:
     """
-
+    Класс для хранение расположения (столбца и строки)
     """
 
     def __init__(self, x, y):
@@ -15,19 +15,19 @@ class Position:
 
     def __str__(self):
         """
-
+        Отвечает за строковое представление расположения
         :return:
         """
-        return f'({self.y}, {self.x})'
+        return f'(line: {self.y}, col: {self.x})'
 
     @classmethod
-    def from_place(cls, place):
+    def from_ast(cls, position: ast.Position):
         """
-
-        :param place:
+        Отвечает за переход от координат из AST в координаты ST
+        :param position: координаты из AST
         :return:
         """
-        obj = cls(place[0], place[1])
+        obj = cls(position.x, position.y)
         return obj
 
 
@@ -96,13 +96,13 @@ class TypeInfo:
         raise KeyError()
 
     @classmethod
-    def from_type(cls, type_of: Type):
+    def from_type(cls, type_of: ast.Type):
         """
         Отвечает за конвертацию из AST Type в ST TypeInfo
         :param type_of:
         :return:
         """
-        if isinstance(type_of, ClassType):
+        if isinstance(type_of, ast.ClassType):
             obj = cls(TypeEnum.UserClass, type_of.label)
         elif type_of.label == 'int_array':
             obj = cls(TypeEnum.IntArray, 'int []')
@@ -203,8 +203,8 @@ class MethodInfo(Identifier):
 
     def add_arg_info(self, arg):
         """
-
-        :param arg:
+        Отвечает за добавление аргумента в метод
+        :param arg: информация о добавляемом аргументе
         :return:
         """
         declared = self.variables_block.get(arg.name)
@@ -221,27 +221,23 @@ class MethodInfo(Identifier):
         return len(self.vars_names)
 
     def get_full_name(self):
-        """
-
-        :return:
-        """
         return self.class_name
 
 
 class ClassInfo(Identifier):
     """
-
+    Информация о классе (название, положение, информация о методах и переменных)
     """
 
     def __init__(self, name: str, position: Position):
         """
         Конструктор
-        :param name:
-        :param position:
+        :param name: название класса
+        :param position: положение класса
         """
         Identifier.__init__(self, name, position)
 
-        self.super_class: str = None
+        self.super_class_name: str = None
         self.methods_names: list = []
         self.vars_names: list = []
 
@@ -252,8 +248,8 @@ class ClassInfo(Identifier):
 
     def add_method_info(self, method: MethodInfo):
         """
-
-        :param method:
+        Отвечает за добавление информации о методе в классе
+        :param method: Информация о добавляемом методе
         :return:
         """
         declared: MethodInfo = self.methods_block.get(method.name)
@@ -265,8 +261,8 @@ class ClassInfo(Identifier):
 
     def add_variable_info(self, variable: VariableInfo):
         """
-
-        :param variable:
+        Отвечает за добавление информации о переменной в классе
+        :param variable: Информация о добавляемой переменной
         :return:
         """
         declared = self.variables_block.get(variable.name)
@@ -276,8 +272,13 @@ class ClassInfo(Identifier):
         self.vars_names.append(variable.name)
         self.variables_block.update((variable.name, variable))
 
-    def add_super_class(self, symbol: str):
-        self.super_class = symbol
+    def add_super_class(self, super_class_name: str):
+        """
+        Отвечает за добавление названия базового класса для текущего класса
+        :param super_class_name: название базового класса
+        :return:
+        """
+        self.super_class_name = super_class_name
 
     def get_vars_count(self):
         return len(self.vars_names)
@@ -301,9 +302,16 @@ class ScopeBlock:
 
 
 class Table:
+    """
+    Таблица символов - отвечает за хранение информации о классах, переменных, методах
+    Отвечает также за проверки классов, суперклассов, существования и переобъявления
+    переменных. Отвечает за понятие Scope - доступных на данных момент переменных, методов
+    TODO подумать про проверку на public/private
+    """
+
     def __init__(self):
         """
-
+        Конструктор (таблица заполняется снаружи при помощи методов)
         """
         self.classes_block = dict()
         self.classes_names = []
@@ -314,10 +322,10 @@ class Table:
 
     def add_class(self, class_info: ClassInfo):
         """
-
-        :param class_info:
-        :param position:
+        Отвечает за добавление в таблицу информации о классе
+        :param class_info: информация о классе
         :return:
+        TODO дописать определение ошибки
         """
         already_found = self.classes_block.get(class_info.name)
         if already_found is not None:
@@ -327,15 +335,15 @@ class Table:
 
     def _add_class_to_scope(self, class_info: ClassInfo):
         """
-
-        :param class_info:
+        Отвечает за добавление класса в текущий Scope
+        :param class_info: информация о классе
         :return:
         """
         self.blocks.append(ScopeBlock(class_info.variables_block, class_info.methods_block, class_info))
 
     def _add_method_to_scope(self, method_info: MethodInfo):
         """
-
+        Отвечает за добавление метода в текущий Scope
         :param method_info:
         :return:
         """
@@ -343,41 +351,42 @@ class Table:
 
     def add_class_to_scope(self, class_name: str, position: Position):
         """
-
-        :param class_name:
-        :param position:
+        Отвечает за добавление класса в текущий Scope по его названию
+        :param class_name: название класса
+        :param position: расположение класса
         :return:
         """
         class_to_add = self.get_class(class_name, position)
         if class_to_add.name not in self.verified_classes:
             self.verify_class(class_to_add, position)
         classes_stack = [class_to_add]
-        while class_to_add.super_class is not None:
-            class_to_add = self.get_class(class_to_add.super_class, position)
+        while class_to_add.super_class_name is not None:
+            class_to_add = self.get_class(class_to_add.super_class_name, position)
             classes_stack.append(class_to_add)
         for class_info in classes_stack:
             self._add_class_to_scope(class_info)
 
     def add_method_to_scope(self, method_name: str, position: Position):
         """
-
-        :param method_name:
-        :param position:
+        Отвечает за добавление метода в текущий Scope по его названию
+        :param method_name: название метода
+        :param position: расположение метода
         :return:
         """
         self._add_method_to_scope(self.get_method(method_name, position))
 
     def verify_class(self, class_info: ClassInfo, position: Position):
         """
-
-        :param class_info:
-        :param position:
+        Отвечает за проверку класса на циклическую зависимость
+        :param class_info: информация о проверяемом классе
+        :param position: расположение проверяемого класса
         :return:
+        TODO дописать определение ошибки
         """
         classes_in_graph = set()
         class_to_check = class_info
-        while class_to_check.super_class is not None:
-            class_to_check = self.get_class(class_to_check.super_class, position)
+        while class_to_check.super_class_name is not None:
+            class_to_check = self.get_class(class_to_check.super_class_name, position)
             if class_to_check in classes_in_graph:
                 raise SyntaxError('Cyclic dependency!')
             classes_in_graph.add(class_info)
@@ -386,9 +395,9 @@ class Table:
 
     def get_class(self, class_name: str, position: Position) -> ClassInfo:
         """
-
-        :param class_name:
-        :param position:
+        Отвечает за получение информации о классе по его названию и расположению
+        :param class_name: название класса
+        :param position: расположение класса
         :return:
         """
         class_info = self.classes_block.get(class_name)
@@ -398,9 +407,9 @@ class Table:
 
     def get_method(self, method_name: str, position: Position) -> MethodInfo:
         """
-
-        :param method_name:
-        :param position:
+        Отвечает за получение информации о методе по его названию и расположению
+        :param method_name: название метода
+        :param position: расположение метода
         :return:
         """
         for block in self.blocks:
@@ -412,9 +421,9 @@ class Table:
 
     def get_variable(self, variable_name: str, position: Position) -> VariableInfo:
         """
-
-        :param variable_name:
-        :param position:
+        Отвечает за получение информации о переменной по ее названию и расположению
+        :param variable_name: название переменной
+        :param position: расположение переменной
         :return:
         """
         for block in self.blocks:
@@ -426,7 +435,7 @@ class Table:
 
     def get_scoped_class(self) -> Optional[ClassInfo]:
         """
-
+        Возвращает информацию о классе из последнего Scope
         :return:
         """
         if len(self.blocks) > 0 and self.blocks[0].class_info is not None:
@@ -436,44 +445,44 @@ class Table:
     @staticmethod
     def does_type_have_super(class_info: ClassInfo, super_class_name: str) -> bool:
         """
-
-        :param class_info:
-        :param super_class_name:
-        :param position:
+        Проверяет, является ли класс наследником другого класса
+        :param class_info: название класса
+        :param super_class_name: название предполагаемого базового класса
         :return:
         """
-        while class_info.super_class is not None:
-            if class_info.super_class == super_class_name:
+        while class_info.super_class_name is not None:
+            if class_info.super_class_name == super_class_name:
                 return True
-            class_info = class_info.super_class
+            class_info = class_info.super_class_name
         return False
 
     def free_last_scope(self):
         """
-
+        Удаляет Scope таблицы
         :return:
         """
         self.blocks.clear()
 
 
-class TableFiller(Visitor):
+class TableFiller(ast.Visitor):
+    """
+    Visitor, отвечающий за заполнение символьной таблицы
+    при обходе абстрактного синтаксического дерева
     """
 
-    """
-
-    def __init__(self, table):
+    def __init__(self, table: Table):
         """
-
-        :param table:
+        Конструктор (передаем заполняемую таблицу)
+        :param table: символьная таблица для заполнения
         """
-        Visitor.__init__(self)
+        ast.Visitor.__init__(self)
         self.table = table
 
-    def parse_program(self, program: Program, print_table=True):
+    def parse_program(self, program: ast.Program, print_table: bool = True):
         """
-
-        :param program:
-        :param print_table:
+        Отвечает за обход AST и заполнение таблицы
+        :param program: корень AST (class Program)
+        :param print_table: отвечает за вывод таблицы на экран
         :return:
         """
         program.accept(self)
@@ -482,63 +491,65 @@ class TableFiller(Visitor):
                 try:
                     class_info = self.table.get_class(class_name, Position(0, 0))
                     self.table.add_class_to_scope(class_name, Position(0, 0))
-                    print(f'class {class_name}:')
-                    self.print_class_info(class_info)
+                    if print_table:
+                        self._print_class_info(class_info)
                     self.table.free_last_scope()
                     print()
                 except SyntaxError as error:
                     print(error)
 
-    def visit(self, visitable: Visitable):
+    def visit(self, visitable: ast.Visitable):
         """
-
-        :param visitable:
+        Отвечает за посещение произвольного узла дерева (начальный пункт)
+        :param visitable: посещаемый узел
         :return:
+        TODO переписать на декораторах?
         """
-        if isinstance(visitable, Program):
-            self.visit_program(visitable)
-        elif isinstance(visitable, MainClass):
-            self.visit_main_class(visitable)
-        elif isinstance(visitable, ClassDecl):
-            self.visit_class_decl(visitable)
+        if isinstance(visitable, ast.Program):
+            self._visit_program(visitable)
+        elif isinstance(visitable, ast.MainClass):
+            self._visit_main_class(visitable)
+        elif isinstance(visitable, ast.ClassDecl):
+            self._visit_class_decl(visitable)
 
-    def visit_program(self, program: Program):
+    def _visit_program(self, program: ast.Program):
         """
-
-        :param program:
+        Отвечает за посещение узла класса Program
+        :param program: узел дерева класса Program
         :return:
         """
         program.main.accept(self)
         for class_decl in program.class_decl_list:
             class_decl.accept(self)
 
-    def visit_main_class(self, main_class: MainClass):
+    def _visit_main_class(self, main_class: ast.MainClass):
         """
-
-        :param main_class:
+        Отвечает за посещение главного класса программы
+        :param main_class: узел дерева класса MainClass
         :return:
         """
-        class_info = ClassInfo(main_class.id.name, Position.from_place(main_class.place))
+        class_info = ClassInfo(main_class.id.name, Position.from_ast(main_class.place))
         method_info = MethodInfo('main',
                                  main_class.id.name,
-                                 Position.from_place(main_class.place),
+                                 Position.from_ast(main_class.place),
                                  TypeInfo(TypeEnum.UserClass, 'void'),
                                  AccessModifierEnum.Public)
         method_info.add_arg_info(VariableInfo(
             main_class.param_id.name,
-            Position.from_place(main_class.place),
+            Position.from_ast(main_class.place),
             TypeInfo(TypeEnum.UserClass, 'String []')
         ))
         class_info.add_method_info(method_info)
         self.table.add_class(class_info)
 
-    def visit_class_decl(self, class_decl: ClassDecl):
+    def _visit_class_decl(self, class_decl: ast.ClassDecl):
         """
-
-        :param class_decl:
+        Отвечает за посещение не главного класса программы
+        :param class_decl: узел AST класса ClassDecl
         :return:
+        TODO разобраться с Position (правильно ли передается из AST вообще?)
         """
-        class_info = ClassInfo(class_decl.id.name, Position.from_place(class_decl.place))
+        class_info = ClassInfo(class_decl.id.name, Position.from_ast(class_decl.place))
         if class_decl.extends is not None:
             class_info.add_super_class(class_decl.extends.name)
 
@@ -546,7 +557,7 @@ class TableFiller(Visitor):
             class_info.add_variable_info(
                 VariableInfo(
                     var_decl.id.name,
-                    Position.from_place(var_decl.place),
+                    Position.from_ast(var_decl.place),
                     TypeInfo.from_type(var_decl.type_of)
                 )
             )
@@ -555,74 +566,75 @@ class TableFiller(Visitor):
             method_info = MethodInfo(
                 method_decl.id.name,
                 class_decl.id.name,
-                Position.from_place(method_decl.place),
+                Position.from_ast(method_decl.place),
                 TypeInfo.from_type(method_decl.type_of),
                 AccessModifierEnum.Public if method_decl.modifier == 'PUBLIC' else AccessModifierEnum.Private
             )
             for arg_decl in method_decl.arg_decl_list:
                 method_info.add_arg_info(VariableInfo(
                     arg_decl.id.name,
-                    Position.from_place(arg_decl.place),
+                    Position.from_ast(arg_decl.place),
                     TypeInfo.from_type(arg_decl.type_of)
                 ))
             for var_decl in method_decl.var_decl_list:
                 method_info.add_variable_info(VariableInfo(
                     var_decl.id.name,
-                    Position.from_place(var_decl.place),
+                    Position.from_ast(var_decl.place),
                     TypeInfo.from_type(var_decl.type_of)
                 ))
             class_info.add_method_info(method_info)
         self.table.add_class(class_info)
 
-    def print_class_info(self, class_info: ClassInfo):
+    def _print_class_info(self, class_info: ClassInfo):
         """
-
-        :param class_info:
+        Отвечает за вывод информации о классе на экран
+        :param class_info: информация о классе, который будет выведен
         :return:
         """
-        if class_info.super_class is not None:
-            print(f'    Super {class_info.super_class}')
-            super_class_info = self.table.get_class(class_info.super_class, Position(0, 0))
-            self.print_class_info(super_class_info)
+        print(f'class {class_info.name} {class_info.position}')
+
+        if class_info.super_class_name is not None:
+            print(f'extends {class_info.super_class_name}')
+            self.table.get_class(class_info.super_class_name, Position(0, 0))
 
         for var_name in class_info.vars_names:
             variable_info = self.table.get_variable(var_name, Position(0, 0))
-            print(self.format_variable_info(variable_info))
+            print(self._format_variable_info(variable_info))
 
         for method_name in class_info.methods_names:
             method_info = self.table.get_method(method_name, Position(0, 0))
             self.table.add_method_to_scope(method_info.name, Position(0, 0))
             access_modifier = 'public' if method_info.access_modifier == AccessModifierEnum.Public else 'private'
 
-            print(f'    func {access_modifier} {method_info.name}')
+            print(f'    func {access_modifier} {method_info.name} {method_info.position}')
 
             if method_info.get_args_count() > 0:
                 print(f'        arguments:')
                 for arg_name in method_info.args_names:
                     arg_info = self.table.get_variable(arg_name, Position(0, 0))
-                    print(f'            {self.format_variable_info(arg_info)}')
+                    print(f'            {self._format_variable_info(arg_info)}')
 
             if method_info.get_vars_count() > 0:
                 print(f'        local variables:')
                 for var_name in method_info.vars_names:
                     variable_info = self.table.get_variable(var_name, Position(0, 0))
-                    print(f'            {self.format_variable_info(variable_info)}')
+                    print(f'            {self._format_variable_info(variable_info)}')
 
             self.table.free_last_scope()
 
     @staticmethod
-    def format_variable_info(variable_info: VariableInfo):
+    def _format_variable_info(variable_info: VariableInfo):
         """
-
-        :param variable_info:
+        Отвечает за формирование текста для отображения переменной
+        :param variable_info: информация об отображаемой переменной
         :return:
         """
         if variable_info.type_of.type_enum == TypeEnum.Boolean:
             type_of = 'bool'
         if variable_info.type_of.type_enum == TypeEnum.Int:
-            type_of = 'bool'
+            type_of = 'int'
         if variable_info.type_of.type_enum == TypeEnum.IntArray:
-            type_of = 'bool'
+            type_of = 'int []'
         if variable_info.type_of.type_enum == TypeEnum.UserClass:
             type_of = variable_info.type_of.user_class_name
-        return f'{type_of} {variable_info.name}'
+        return f'{type_of} {variable_info.name} {variable_info.position}'

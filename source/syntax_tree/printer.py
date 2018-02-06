@@ -1,8 +1,8 @@
-from source.syntax_tree.base import *
-from source.syntax_tree.declarations import *
-from source.syntax_tree.expressions import *
-from source.syntax_tree.grammar import *
-from source.syntax_tree.statements import *
+from .base import *
+from .declarations import *
+from .expressions import *
+from .grammar import *
+from .statements import *
 
 
 class Printer(Visitor):

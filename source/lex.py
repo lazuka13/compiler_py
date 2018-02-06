@@ -1,4 +1,3 @@
-import ply.yacc as yacc
 import ply.lex as lex
 
 tokens = [
