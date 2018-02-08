@@ -34,7 +34,7 @@ class CallMethodExpr(Expr):
         Expr.__init__(self, expr.label, place)
         self.expr = expr
         self.id = id
-        self.expt_list = params.expr_list if params is not None else None
+        self.expr_list = params.expr_list if params is not None else []
 
 
 class FalseExpr(Expr):

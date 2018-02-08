@@ -5,3 +5,4 @@
 1) лексер  
 2) yacc-парсер  
 3) syntax tree  
+4) symbol table

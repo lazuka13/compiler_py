@@ -4,10 +4,6 @@ class Position:
     """
 
     def __init__(self, x, y):
-        """
-        Конструктор
-        :param p: объект из yacc - для того, чтобы получить значения строки и столбца
-        """
         self.x = x
         self.y = y
 

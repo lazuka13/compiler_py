@@ -30,7 +30,7 @@ def find_column(lex_pos):
     last_cr = text.rfind('\n', 0, lex_pos)
     if last_cr < 0:
         last_cr = 0
-    column = (lex_pos - last_cr) + 1
+    column = (lex_pos - last_cr)
     return column
 
 

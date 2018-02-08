@@ -244,7 +244,7 @@ class ClassInfo(Identifier):
         self.variables_block = dict()
         self.methods_block = dict()
 
-        self.info: TypeInfo = TypeInfo(TypeEnum.UserClass, name)
+        self.type_info: TypeInfo = TypeInfo(TypeEnum.UserClass, name)
 
     def add_method_info(self, method: MethodInfo):
         """

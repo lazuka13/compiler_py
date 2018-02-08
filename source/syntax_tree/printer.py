@@ -15,6 +15,7 @@ class Printer(Visitor):
         self.out = self.out + "}"
         with open(self.path, 'w+') as file:
             file.write(self.out)
+        print(f'Абстрактное синтаксическое дерево сохранено в файл {self.path}')
 
     def print_edge(self, obj_from, obj_to, label=None):
         if label is None:
