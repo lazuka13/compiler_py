@@ -176,8 +176,8 @@ class Printer(Visitor):
         self.print_edge(obj, obj.id)
         obj.expr.accept(self)
         self.print_edge(obj, obj.expr)
-        if obj.expt_list is not None:
-            for param in obj.expt_list:
+        if obj.expr_list is not None:
+            for param in obj.expr_list:
                 param.accept(self)
                 self.print_edge(obj, param, 'parameter')
 
@@ -195,8 +195,8 @@ class Printer(Visitor):
         self.print_vertex(obj, '=')
         obj.id.accept(self)
         self.print_edge(obj, obj.id, 'array')
-        obj.position.accept(self)
-        self.print_edge(obj, obj.position, 'position')
+        obj.position_in_arr.accept(self)
+        self.print_edge(obj, obj.position_in_arr, 'position')
         obj.expr.accept(self)
         self.print_edge(obj, obj.expr)
 
@@ -219,8 +219,8 @@ class Printer(Visitor):
 
     def visit_statements(self, obj: Statements):
         self.print_vertex(obj, 'statements')
-        if obj.statements is not None:
-            for statement in obj.statements:
+        if obj.statement_list is not None:
+            for statement in obj.statement_list:
                 statement.accept(self)
                 self.print_edge(obj, statement)
 
@@ -228,7 +228,7 @@ class Printer(Visitor):
         self.print_vertex(obj, 'access_to_position')
         obj.object.accept(self)
         self.print_edge(obj, obj.object, 'object')
-        obj.position.accept(self)
+        obj.position_in_arr.accept(self)
         self.print_edge(obj, obj.position, 'position')
 
     def visit_arg_decl(self, obj: ArgDecl):

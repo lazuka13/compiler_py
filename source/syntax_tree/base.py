@@ -29,8 +29,8 @@ class Visitable:
     Базовый класс для всех классов AST
     """
 
-    def __init__(self, place):
-        self.place = place
+    def __init__(self, position):
+        self.position = position
 
     def accept(self, visitor):
         visitor.visit(self)

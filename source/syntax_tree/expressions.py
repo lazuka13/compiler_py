@@ -2,9 +2,9 @@ from .base import Visitable
 
 
 class Expr(Visitable):
-    def __init__(self, label, place):
+    def __init__(self, label, position):
         self.label = label
-        Visitable.__init__(self, place)
+        Visitable.__init__(self, position)
 
 
 class ExprList():
@@ -17,79 +17,79 @@ class ExprList():
 
 
 class BinaryExpr(Expr):
-    def __init__(self, left, kind_of, right, place):
-        Expr.__init__(self, kind_of, place)
+    def __init__(self, left, kind_of, right, position):
+        Expr.__init__(self, kind_of, position)
         self.left = left
         self.right = right
         self.id = right
 
 
 class BooleanExpr(Expr):
-    def __init__(self, value, place):
-        Expr.__init__(self, value, place)
+    def __init__(self, value, position):
+        Expr.__init__(self, value, position)
 
 
 class CallMethodExpr(Expr):
-    def __init__(self, expr, id, params, place):
-        Expr.__init__(self, expr.label, place)
+    def __init__(self, expr, id, params, position):
+        Expr.__init__(self, expr.label, position)
         self.expr = expr
         self.id = id
         self.expr_list = params.expr_list if params is not None else []
 
 
 class FalseExpr(Expr):
-    def __init__(self, place):
-        Expr.__init__(self, 'False', place)
+    def __init__(self, position):
+        Expr.__init__(self, 'False', position)
 
 
 class TrueExpr(Expr):
-    def __init__(self, place):
-        Expr.__init__(self, 'True', place)
+    def __init__(self, position):
+        Expr.__init__(self, 'True', position)
 
 
 class Id(Expr):
-    def __init__(self, name, place):
-        Expr.__init__(self, "name", place)
+    def __init__(self, name, position):
+        Expr.__init__(self, "name", position)
         self.name = name
 
 
 class IntegerExpr(Expr):
-    def __init__(self, value, place):
-        Expr.__init__(self, str(value), place)
+    def __init__(self, value, position):
+        Expr.__init__(self, str(value), position)
         self.value = value
 
 
 class LengthExpr(Expr):
-    def __init__(self, obj, place):
-        Expr.__init__(self, "Length", place)
+    def __init__(self, obj, position):
+        Expr.__init__(self, "Length", position)
         self.obj = obj
 
 
 class NewIntArrExpr(Expr):
-    def __init__(self, size, place):
-        Expr.__init__(self, 'NewIntArrExpr', place)
+    def __init__(self, size, position):
+        Expr.__init__(self, 'NewIntArrExpr', position)
         self.size = size
 
 
 class NewObjectExpr(Expr):
-    def __init__(self, id, place):
-        Expr.__init__(self, "NewObjectExpr", place)
+    def __init__(self, id, position):
+        Expr.__init__(self, "NewObjectExpr", position)
         self.id = id
 
 
 class NotExpr(Expr):
-    def __init__(self, right, place):
-        Expr.__init__(self, "NotExpr", place)
+    def __init__(self, right, position):
+        Expr.__init__(self, "NotExpr", position)
         self.right = right
 
 
 class RandomAccessExpr(Expr):
-    def __init__(self, object, position, place):
-        Expr.__init__(self, "RandomAccessExpr", place)
+    def __init__(self, object, position_in_arr, position):
+        Expr.__init__(self, "RandomAccessExpr", position)
         self.object = object
-        self.position = position
+        self.position_in_arr = position_in_arr
 
 
 class ThisExpr(Expr):
-    def __init__(self, place):
-        Expr.__init__(self, "ThisExpr", place)
+    def __init__(self, position):
+        Expr.__init__(self, "ThisExpr", position)

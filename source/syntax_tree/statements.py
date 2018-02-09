@@ -2,8 +2,8 @@ from .base import Visitable
 
 
 class Statement(Visitable):
-    def __init__(self, place):
-        Visitable.__init__(self, place)
+    def __init__(self, position):
+        Visitable.__init__(self, position)
 
 
 class StatementList:
@@ -15,42 +15,43 @@ class StatementList:
         self.statement_list.append(statement)
 
 
-class Statements:
+class Statements(Statement):
     def __init__(self, statement_list):
-        self.statements = statement_list.statement_list
+        Statement.__init__(self, None)
+        self.statement_list = statement_list.statement_list
 
 
 class AssignStatement(Statement):
-    def __init__(self, left, right, place):
-        Statement.__init__(self, place)
+    def __init__(self, left, right, position):
+        Statement.__init__(self, position)
         self.left = left
         self.right = right
 
 
 class IfStatement(Statement):
-    def __init__(self, condition, if_true, if_false, place):
-        Statement.__init__(self, place)
+    def __init__(self, condition, if_true, if_false, position):
+        Statement.__init__(self, position)
         self.condition = condition
         self.if_true = if_true
         self.if_false = if_false
 
 
 class PrintLineStatement(Statement):
-    def __init__(self, obj, place):
-        Statement.__init__(self, place)
+    def __init__(self, obj, position):
+        Statement.__init__(self, position)
         self.obj = obj
 
 
 class RandomAccessAssignStatement(Statement):
-    def __init__(self, id, position, expr, place):
-        Statement.__init__(self, place)
+    def __init__(self, id, position_in_arr, expr, position):
+        Statement.__init__(self, position)
         self.id = id
-        self.position = position
+        self.position_in_arr = position_in_arr
         self.expr = expr
 
 
 class WhileStatement(Statement):
-    def __init__(self, condition, action, place):
-        Statement.__init__(self, place)
+    def __init__(self, condition, action, position):
+        Statement.__init__(self, position)
         self.condition = condition
         self.action = action

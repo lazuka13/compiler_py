@@ -2,8 +2,8 @@ from .base import Visitable
 
 
 class ArgDecl(Visitable):
-    def __init__(self, type_of, id, place):
-        Visitable.__init__(self, place)
+    def __init__(self, type_of, id, position):
+        Visitable.__init__(self, position)
         self.type_of = type_of
         self.id = id
 
@@ -20,8 +20,8 @@ class ArgDeclList:
 
 
 class ClassDecl(Visitable):
-    def __init__(self, id=None, extends=None, vars=None, methods=None, place=None):
-        Visitable.__init__(self, place)
+    def __init__(self, id=None, extends=None, vars=None, methods=None, position=None):
+        Visitable.__init__(self, position)
         self.id = id
         self.extends = extends
         self.var_decl_list = vars.var_decl_list if vars is not None else []
@@ -38,16 +38,16 @@ class ClassDeclList:
 
 
 class MainClass(Visitable):
-    def __init__(self, id, param_id, statements, place):
-        Visitable.__init__(self, place)
+    def __init__(self, id, param_id, statements, position):
+        Visitable.__init__(self, position)
         self.id = id
         self.param_id = param_id
         self.statement_list = statements.statement_list if statements is not None else []
 
 
 class MethodDecl(Visitable):
-    def __init__(self, modifier, type_of, id, args, vars, statements, result, place):
-        Visitable.__init__(self, place)
+    def __init__(self, modifier, type_of, id, args, vars, statements, result, position):
+        Visitable.__init__(self, position)
         self.modifier = modifier
         self.type_of = type_of
         self.id = id
@@ -68,11 +68,11 @@ class MethodDeclList:
 
 
 class VarDecl(Visitable):
-    def __init__(self, type_of, id, place):
-        Visitable.__init__(self, place)
+    def __init__(self, type_of, id, position):
+        Visitable.__init__(self, position)
         self.type_of = type_of
         self.id = id
-        self.place = place
+        self.position = position
 
 
 class VarDeclList:

@@ -1,7 +1,18 @@
+# Файлы IDE и Python
 .idea
 venv/
+__pycache__/
+
+# Генерируемые PLY файлы
 source/lextab.py
 source/parsetab.py
 source/parser.out
-__pycache__/
+
+# Примеры кода на MiniJava
+samples/
+
+# Папка с результатами тестов
 tests/
+
+# Генерируемые файлы
+*.gv

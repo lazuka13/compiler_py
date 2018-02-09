@@ -1,5 +1,4 @@
 import ply.yacc as yacc
-from lex import tokens
 
 import syntax_tree as ast
 
@@ -243,7 +242,7 @@ def p_exp(p):
         p[0] = ast.RandomAccessExpr(p[1], p[3], ast.Position(*get_pos(p)))
     elif len(p) == 4:
         p[0] = ast.LengthExpr(p[1], ast.Position(*get_pos(p)))
-    elif len(p) == 5:
+    elif len(p) == 6:
         p[0] = ast.CallMethodExpr(p[1], p[3], None, ast.Position(*get_pos(p)))
     else:
         p[0] = ast.CallMethodExpr(p[1], p[3], p[5], ast.Position(*get_pos(p)))
@@ -261,9 +260,9 @@ def p_exp_vars(p):
         | BANG exp
         | L_ROUND exp R_ROUND
     """
-    if p[1] == 'True':
+    if p[1] == 'true':
         p[0] = ast.TrueExpr(ast.Position(*get_pos(p)))
-    elif p[1] == 'False':
+    elif p[1] == 'false':
         p[0] = ast.FalseExpr(ast.Position(*get_pos(p)))
     elif p[1] == 'this':
         p[0] = ast.ThisExpr(ast.Position(*get_pos(p)))
@@ -314,7 +313,7 @@ def p_error(p):
 parser = yacc.yacc()
 
 
-def parse_program(file_path):
+def parse_program(file_path) -> ast.Program:
     global text
     with open(file_path) as file:
         text = file.read()

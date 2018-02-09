@@ -1,18 +1,19 @@
-from yacc import parse_program
+# Пример полного разбора программы Factorial.exe
 
-import syntax_tree as ast
 import symbol_table as st
+import syntax_tree as ast
 import type_checker as tc
+from yacc import parse_program
 
 if __name__ == '__main__':
     # строим абстрактное синтаксическое дерево
     print('### Построение абстрактного синтаксического дерева ###')
-    program = parse_program("tests/file.txt")
+    program = parse_program("../samples/good/Factorial.java")
     print()
 
     # распечатываем абстрактное синтаксическое дерево
     print('### Печать абстрактного синтаксического дерева ###')
-    printer = ast.Printer('tests/out.gv')
+    printer = ast.Printer('out.gv')
     printer.visit(program)
     printer.print_to_file()
     print()
