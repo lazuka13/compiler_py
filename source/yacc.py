@@ -1,4 +1,7 @@
 import ply.yacc as yacc
+import lex
+
+tokens = lex.tokens
 
 import syntax_tree as ast
 
