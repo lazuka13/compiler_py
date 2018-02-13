@@ -1,14 +1,14 @@
-from .base import Visitable
+from .base import Visitable, Position
 
 
 class Expr(Visitable):
-    def __init__(self, label, position):
+    def __init__(self, label: str, position: Position):
         self.label = label
         Visitable.__init__(self, position)
 
 
 class ExprList():
-    def __init__(self, expr, prev=None):
+    def __init__(self, expr: Expr, prev: 'ExprList' = None):
         if prev is None:
             self.expr_list = []
         else:
@@ -17,20 +17,15 @@ class ExprList():
 
 
 class BinaryExpr(Expr):
-    def __init__(self, left, kind_of, right, position):
+    def __init__(self, left: Expr, kind_of: str, right: Expr, position: Position):  # TODO переделать на Enum
         Expr.__init__(self, kind_of, position)
         self.left = left
         self.right = right
         self.id = right
 
 
-class BooleanExpr(Expr):
-    def __init__(self, value, position):
-        Expr.__init__(self, value, position)
-
-
 class CallMethodExpr(Expr):
-    def __init__(self, expr, id, params, position):
+    def __init__(self, expr: Expr, id: str, params: ExprList, position: Position):
         Expr.__init__(self, expr.label, position)
         self.expr = expr
         self.id = id
@@ -38,22 +33,22 @@ class CallMethodExpr(Expr):
 
 
 class FalseExpr(Expr):
-    def __init__(self, position):
+    def __init__(self, position: Position):
         Expr.__init__(self, 'False', position)
 
 
 class TrueExpr(Expr):
-    def __init__(self, position):
+    def __init__(self, position: Position):
         Expr.__init__(self, 'True', position)
 
 
 class Id(Expr):
-    def __init__(self, name, position):
+    def __init__(self, name, position: Position):
         Expr.__init__(self, "name", position)
         self.name = name
 
 
-class IntegerExpr(Expr):
+class IntegerExpr(Expr):  # TODO подумать про структуру
     def __init__(self, value, position):
         Expr.__init__(self, str(value), position)
         self.value = value

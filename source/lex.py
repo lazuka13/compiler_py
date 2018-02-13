@@ -1,5 +1,11 @@
 import ply.lex as lex
 
+"""
+# Подробное описание работы с LEX можно найти в документации Ply
+# http://www.dabeaz.com/ply/ply.html
+"""
+
+# Список токенов, которые распознаются программой #
 tokens = [
     "L_BRACKET",
     "R_BRACKET",
@@ -26,6 +32,7 @@ tokens = [
     "COMMENT"
 ]
 
+# Определяем регулярные выражения для токенов #
 t_L_BRACKET = r'{'
 t_R_BRACKET = r'}'
 t_L_ROUND = r'\('
@@ -45,6 +52,7 @@ t_BANG = r'\!'
 t_AND = r'\&\&'
 t_OR = r'\|\|'
 
+# Перечисляем все зарезервированные слова языка #
 reserved = {
     r'class': "CLASS",
     r'extends': "EXTENDS",
@@ -64,9 +72,12 @@ reserved = {
     r'return': "RETURN",
 }
 
+# Добавляем список зарезервированных слов к токенам #
 tokens += list(reserved.values())
 
 
+# Определяем регулярные выражения для сложных токенов #
+# В случае static main void и System.out.println не разделяем на различные токены #
 def t_STATIC_VOID_MAIN(t):
     r"""static \s void \s main"""
     return t
@@ -106,6 +117,7 @@ def t_error(t):
 t_ignore = ' \t'
 
 
+# функция определения столбца токена #
 def find_column(input, token):
     last_cr = input.rfind('\n', 0, token.lexpos)
     if last_cr < 0:

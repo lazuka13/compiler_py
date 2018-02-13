@@ -89,8 +89,6 @@ class TypeChecker(ast.Visitor):
             self.visit_true_expr(visitable)
         if isinstance(visitable, ast.FalseExpr):
             self.visit_false_expr(visitable)
-        if isinstance(visitable, ast.BooleanExpr):
-            self.visit_boolean_expr(visitable)
         if isinstance(visitable, ast.Id):
             self.visit_id(visitable)
         if isinstance(visitable, ast.ThisExpr):
@@ -271,7 +269,7 @@ class TypeChecker(ast.Visitor):
                 if passed.type_enum == st.TypeEnum.UserClass and \
                         self.table.does_type_have_super(
                             self.table.get_class(passed.user_class_name, call_method_expr.position),
-                            arg.type_of.user_class_name):
+                            arg.type_of.user_class_name, call_method_expr.position):
                     continue
                 raise SyntaxError(f'Requested method {class_info.name}::{call_method_expr.id.name} was called with '
                                   f'invalid argument - expected {arg.type_of.get_type_string()}, but got '
@@ -288,10 +286,6 @@ class TypeChecker(ast.Visitor):
 
     def visit_false_expr(self, false_expr: ast.FalseExpr):
         _ = false_expr
-        self.types_stack.append(BooleanType)
-
-    def visit_boolean_expr(self, boolean_expr: ast.BooleanExpr):
-        _ = boolean_expr
         self.types_stack.append(BooleanType)
 
     def visit_id(self, id: ast.Id):

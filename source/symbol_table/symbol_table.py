@@ -418,18 +418,19 @@ class Table:
             return self.blocks[0].class_info
         return None
 
-    @staticmethod
-    def does_type_have_super(class_info: ClassInfo, super_class_name: str) -> bool:
+    def does_type_have_super(self, class_info: ClassInfo, super_class_name: str,
+                             position: ast.Position) -> bool:
         """
         Проверяет, является ли класс наследником другого класса
         :param class_info: название класса
         :param super_class_name: название предполагаемого базового класса
+        :param position: позиция, на которой произошел вызов
         :return:
         """
         while class_info.super_class_name is not None:
             if class_info.super_class_name == super_class_name:
                 return True
-            class_info = class_info.super_class_name
+            class_info = self.get_class(class_info.super_class_name, position)
         return False
 
     def free_last_scope(self):
@@ -543,7 +544,7 @@ class TableFiller(ast.Visitor):
                 class_decl.id.name,
                 method_decl.position,
                 TypeInfo.from_type(method_decl.type_of),
-                AccessModifierEnum.Public if method_decl.modifier == 'public' else AccessModifierEnum.Private
+                AccessModifierEnum.Public if method_decl.access_modifier == 'public' else AccessModifierEnum.Private
             )
             for arg_decl in method_decl.arg_decl_list:
                 method_info.add_arg_info(VariableInfo(

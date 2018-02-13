@@ -1,10 +1,16 @@
 import ply.yacc as yacc
 import lex
 
-tokens = lex.tokens
-
 import syntax_tree as ast
 
+tokens = lex.tokens  # токены были определены в файле lex.py #
+
+"""
+# Подробное описание работы с YACC можно найти в документации Ply
+# http://www.dabeaz.com/ply/ply.html
+"""
+
+# Задаем приоритет операций #
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
@@ -17,11 +23,13 @@ precedence = (
     ('left', 'L_SQUARE'),
 )
 
+# Задаем стартовый символ - с него начинается разбор #
 start = 'start'
 
 text = None
 
 
+# Функция определения координат токена #
 def get_pos(p):
     x = find_column(p.lexpos(0))
     y = p.lineno(0)
@@ -33,9 +41,10 @@ def find_column(lex_pos):
     if last_cr < 0:
         last_cr = 0
     column = (lex_pos - last_cr)
-    return column
+    return column or 1
 
 
+# Набор правил для yacc в соответствии с грамматикой #
 def p_goal(p):
     """
     start : main_class class_s
@@ -316,6 +325,7 @@ def p_error(p):
 parser = yacc.yacc()
 
 
+# Функция для разбора программы - именно ее использует конечный пользователь #
 def parse_program(file_path) -> ast.Program:
     global text
     with open(file_path) as file:

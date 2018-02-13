@@ -44,8 +44,6 @@ class Printer(Visitor):
             self.visit_method_decl(obj)
         elif isinstance(obj, Program):
             self.visit_program(obj)
-        elif isinstance(obj, BooleanExpr):
-            self.visit_boolean_expr(obj)
         elif isinstance(obj, IntegerExpr):
             self.visit_integer_expr(obj)
         elif isinstance(obj, AssignStatement):
@@ -116,7 +114,7 @@ class Printer(Visitor):
                 self.print_edge(obj, statement, 'statement')
 
     def visit_method_decl(self, obj: MethodDecl):
-        self.print_vertex(obj, 'method ' + obj.type_of.label + ' ' + obj.modifier)
+        self.print_vertex(obj, 'method ' + obj.type_of.label + ' ' + obj.access_modifier)
         obj.id.accept(self)
         self.print_edge(obj, obj.id)
         if obj.var_decl_list is not None:
@@ -142,9 +140,6 @@ class Printer(Visitor):
             for class_decl in obj.class_decl_list:
                 class_decl.accept(self)
                 self.print_edge(obj, class_decl)
-
-    def visit_boolean_expr(self, obj: BooleanExpr):
-        self.print_vertex(obj, f'bool {obj.label}')
 
     def visit_integer_expr(self, obj: IntegerExpr):
         self.print_vertex(obj, f'int: {obj.value}')

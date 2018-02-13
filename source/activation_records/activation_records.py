@@ -250,7 +250,7 @@ class FrameFiller:
                 frame.add_address_return_value(method_info.return_type)
                 print(f'Method name: {method_info.name}')
                 activation = frame.find_local_or_formal('this')
-                print(f'this >> {activation.print(frame.FP())}')
+                print(f'this >>> {activation.print(frame.FP())}')
                 for arg_name in method_info.args_names:
                     activation = frame.find_local_or_formal(arg_name)
                     print(f'{arg_name} >>> {activation.print(Temp(0))}')

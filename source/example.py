@@ -41,5 +41,6 @@ if __name__ == '__main__':
     print('### Записи активаций ###')
     frame_filler = ar.FrameFiller(table)
     frame_filler.fill()
+    print()
 
 
