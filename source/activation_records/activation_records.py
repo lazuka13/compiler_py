@@ -4,7 +4,7 @@ import symbol_table as st
 import syntax_tree as ast
 
 
-class Temp:
+class TempAddress:
     def __init__(self, offset=0, address=0):
         self.offset = offset
         self.address = address
@@ -13,7 +13,7 @@ class Temp:
         return self.address + self.offset
 
     def at_address(self, address: int):
-        return Temp(offset=self.offset, address=self.address + address)
+        return TempAddress(offset=self.offset, address=self.address + address)
 
     def get_address_string(self) -> str:
         if self.address == 0:
@@ -38,11 +38,11 @@ class Access:
     def __init__(self):
         pass
 
-    def print(self, frame_pointer: Temp):
+    def print(self, frame_pointer: TempAddress):
         pass
 
 
-class Frame:
+class IFrame:
     def __init__(self):
         pass
 
@@ -87,12 +87,12 @@ class InFrameAccess(Access):
         Access.__init__(self)
         self.record_type = record_type
         self.size = size
-        self.address = Temp(offset)
+        self.address = TempAddress(offset)
 
     def offset(self):
         return self.address
 
-    def print(self, frame_pointer: Temp):
+    def print(self, frame_pointer: TempAddress):
         return f'In frame position {self.address.at_address(frame_pointer.get_address()).get_address()}'
 
 
@@ -103,18 +103,8 @@ class InRegAccess(Access):
         self.size = size
         self.reg_number = reg_number
 
-    def print(self, frame_pointer: Temp):
+    def print(self, frame_pointer: TempAddress):
         return f'Register {self.reg_number}'
-
-
-class AddressExit:
-    def __init__(self, address: Temp):
-        self.address = address
-
-
-class AddressReturnValue:
-    def __init__(self, address: Temp):
-        self.address = address
 
 
 WORD_SIZE = 4
@@ -138,14 +128,14 @@ def type_size(type_enum: st.TypeEnum):
         return bool_size
 
 
-class X86MiniJavaFrame(Frame):
+class X86MiniJavaFrame(IFrame):
     """
     LocalAddress = access address + FP
     FormalAddress = access address or regIndex
     """
 
     def __init__(self):
-        Frame.__init__(self)
+        IFrame.__init__(self)
         self.formal_list = []
         self.formal_access = dict()
         self.local_access = dict()
@@ -210,10 +200,10 @@ class X86MiniJavaFrame(Frame):
         return st.TypeInfo(st.TypeEnum.Int, None)
 
     def FP(self):
-        return Temp(self.formal_top_pointer)
+        return TempAddress(self.formal_top_pointer)
 
     def SP(self):
-        return Temp(self.FP().get_address() + self.local_top_pointer)
+        return TempAddress(self.FP().get_address() + self.local_top_pointer)
 
     def _create_formal(self, records_type: RecordsType, size: int):
         if len(self.formal_list) < MAX_IN_REG:
@@ -250,17 +240,17 @@ class FrameFiller:
                 frame.add_address_return_value(method_info.return_type)
                 print(f'Method name: {method_info.name}')
                 activation = frame.find_local_or_formal('this')
-                print(f'this >>> {activation.print(frame.FP())}')
+                print(f'this: {activation.print(frame.FP())}')
                 for arg_name in method_info.args_names:
                     activation = frame.find_local_or_formal(arg_name)
-                    print(f'{arg_name} >>> {activation.print(Temp(0))}')
+                    print(f'{arg_name}: {activation.print(TempAddress(0))}')
                 print(f'FP: {frame.FP().get_address()}')
                 for var_name in method_info.vars_names:
                     activation = frame.find_local_or_formal(var_name)
-                    print(f'{var_name} >>> {activation.print(frame.FP())}')
+                    print(f'{var_name}: {activation.print(frame.FP())}')
                 print(f'SP: {frame.SP().get_address()}')
-                print(f'Return address: {frame.return_address().print(Temp(0))}')
-                print(f'Exit address: {frame.exit_address().print(Temp(0))}')
+                print(f'Return address: {frame.return_address().print(TempAddress(0))}')
+                print(f'Exit address: {frame.exit_address().print(TempAddress(0))}')
                 print('- - - - - - - - - - - - -')
                 print()
             self.table.free_last_scope()
