@@ -44,7 +44,7 @@ class TrueExpr(Expr):
 
 class Id(Expr):
     def __init__(self, name, position: Position):
-        Expr.__init__(self, "name", position)
+        Expr.__init__(self, name, position)
         self.name = name
 
 

@@ -139,10 +139,11 @@ class TypeChecker(Visitor):
             var_decl.accept(self)
         for statement in method_decl.statement_list:
             statement.accept(self)
-        if method_decl.type_of.label != 'int' and \
-                method_decl.type_of.label != 'int_array' and \
-                method_decl.type_of.label != 'boolean':  # TODO Переписать наконец эту хрень
-            self.table.get_class(method_decl.type_of.label, method_decl.position)
+        method_decl.result.accept(self)
+        returned = self.pop_types_stack()
+        if returned != TypeInfo.from_type(method_decl.type_of):
+            raise SyntaxError(f'Trying to return type {returned.get_type_string()} from method '
+                              f'{method_decl.id.name} of type {method_decl.type_of}! Position {method_decl.position}')
         self.table.free_last_scope()
 
     def visit_random_access_assign_statement(self, raa_statement: RandomAccessAssignStatement):
@@ -212,7 +213,7 @@ class TypeChecker(Visitor):
                 self.types_stack.append(BooleanType)
             else:
                 self.types_stack.append(IntType)
-        elif binary_expr.label in ['and', 'or']:
+        elif binary_expr.label in ['&&', '||']:
             if returned.type_enum != TypeEnum.Boolean:
                 raise SyntaxError(f'Trying to apply logical operation to type {returned.get_type_string()}! '
                                   f'Position {binary_expr.position}')
@@ -229,7 +230,7 @@ class TypeChecker(Visitor):
         if returned.type_enum != TypeEnum.IntArray:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as int array! '
                               f'Position {ra_expr.position}')
-        ra_expr.position.accept(self)
+        ra_expr.position_in_arr.accept(self)
         returned = self.pop_types_stack()
         if returned.type_enum != TypeEnum.Int:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as index of int array! '
@@ -242,6 +243,7 @@ class TypeChecker(Visitor):
         if returned.type_enum != TypeEnum.IntArray:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as int array! '
                               f'Position {length_expr.position}')
+        self.types_stack.append(IntType)
 
     def visit_call_method_expr(self, call_method_expr: CallMethodExpr):
         call_method_expr.expr.accept(self)
@@ -267,7 +269,7 @@ class TypeChecker(Visitor):
             raise SyntaxError(f'Requested method {class_info.name}::{call_method_expr.id.name} was called with '
                               f'invalid arguments number - expected {method_info.get_args_count()} arguments, got '
                               f'{len(call_method_expr.expr_list)} arguments! Position {call_method_expr.position}')
-        for arg in method_info.args_block:
+        for arg in reversed(method_info.args_block):
             passed: TypeInfo = self.pop_types_stack()
             if passed != arg.type_of:
                 if passed.type_enum == TypeEnum.UserClass and \
@@ -311,6 +313,7 @@ class TypeChecker(Visitor):
         if returned != IntType:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as size of array! '
                               f'Position {new_int_arr_expr.position}')
+        self.types_stack.append(IntArrayType)
 
     def visit_not_expr(self, not_expr: NotExpr):
         not_expr.right.accept(self)

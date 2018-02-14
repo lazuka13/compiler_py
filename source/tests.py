@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import click
+
 from activation_records.FrameFiller import FrameFiller
 from symbol_table.Table import Table
 from symbol_table.TableFiller import TableFiller
@@ -18,9 +20,6 @@ def run_ast_tests():
     print("### Тесты AST ###")
     print()
 
-    if not os.path.exists('../samples/good'):
-        raise FileNotFoundError("Не найдена папка с примерами хорошего кода!")
-
     if not os.path.exists('../tests/ast'):
         os.mkdir('../tests/ast')
 
@@ -35,9 +34,6 @@ def run_ast_tests():
         printer.visit(program)
         printer.print_to_file()
         print()
-
-    if not os.path.exists('../samples/bad'):
-        raise FileNotFoundError("Не найдена папка с примерами плохого кода!")
 
     if not os.path.exists('../tests/ast/bad'):
         os.mkdir('../tests/ast/bad')
@@ -64,9 +60,6 @@ def run_st_tests():
     print("### Тесты ST ###")
     print()
 
-    if not os.path.exists('../samples/good'):
-        raise FileNotFoundError("Не найдена папка с примерами хорошего кода!")
-
     if not os.path.exists('../tests/st'):
         os.mkdir('../tests/st')
 
@@ -82,9 +75,6 @@ def run_st_tests():
         filler = TableFiller(table)
         filler.parse_program(program, print_table=True)
         print()
-
-    if not os.path.exists('../samples/bad'):
-        raise FileNotFoundError("Не найдена папка с примерами плохого кода!")
 
     if not os.path.exists('../tests/st/bad'):
         os.mkdir('../tests/st/bad')
@@ -112,9 +102,6 @@ def run_tc_tests():
     print("### Тесты TC ###")
     print()
 
-    if not os.path.exists('../samples/good'):
-        raise FileNotFoundError("Не найдена папка с примерами хорошего кода!")
-
     if not os.path.exists('../tests/st'):
         os.mkdir('../tests/st')
 
@@ -127,13 +114,12 @@ def run_tc_tests():
         program = parse_program(Path('../samples/good') / Path(sample))
 
         table = Table()
+        filler = TableFiller(table)
+        filler.parse_program(program, print_table=False)
 
         type_checker = TypeChecker()
         type_checker.check_ast_st(program, table)
         print()
-
-    if not os.path.exists('../samples/bad'):
-        raise FileNotFoundError("Не найдена папка с примерами плохого кода!")
 
     if not os.path.exists('../tests/st/bad'):
         os.mkdir('../tests/st/bad')
@@ -145,6 +131,8 @@ def run_tc_tests():
             program = parse_program(Path('../samples/bad') / Path(sample))
 
             table = Table()
+            filler = TableFiller(table)
+            filler.parse_program(program, print_table=False)
 
             type_checker = TypeChecker()
             type_checker.check_ast_st(program, table)
@@ -162,9 +150,6 @@ def run_ar_tests():
     print("### Тесты AR ###")
     print()
 
-    if not os.path.exists('../samples/good'):
-        raise FileNotFoundError("Не найдена папка с примерами хорошего кода!")
-
     if not os.path.exists('../tests/st'):
         os.mkdir('../tests/st')
 
@@ -177,40 +162,38 @@ def run_ar_tests():
         program = parse_program(Path('../samples/good') / Path(sample))
 
         table = Table()
+        filler = TableFiller(table)
+        filler.parse_program(program, print_table=False)
 
         frame_filler = FrameFiller(table)
         frame_filler.fill()
         print()
 
-    if not os.path.exists('../samples/bad'):
-        raise FileNotFoundError("Не найдена папка с примерами плохого кода!")
 
-    if not os.path.exists('../tests/st/bad'):
-        os.mkdir('../tests/st/bad')
-
-    bad_samples = os.listdir('../samples/bad')
-    for sample in bad_samples:
-        print(f'Разбираем плохую программу {sample} ...')
-        try:
-            program = parse_program(Path('../samples/bad') / Path(sample))
-
-            table = Table()
-
-            frame_filler = FrameFiller(table)
-            frame_filler.fill()
-        except SyntaxError as error:
-            print(error)
-        print()
-
-
-def run_tests():  # TODO сделать через CLICK с параметром теста
+@click.command()
+@click.option('--test', '-t', default='all',
+              help='What to test? (ast, st, tc, ar, all).')
+def run_tests(test):
     if not os.path.exists('../tests'):
         os.mkdir('../tests')
 
-    run_ast_tests()
-    run_st_tests()
-    run_tc_tests()
-    run_ar_tests()
+    if not os.path.exists('../samples/good'):
+        raise FileNotFoundError("Не найдена папка с примерами хорошего кода!")
+
+    if not os.path.exists('../samples/bad'):
+        raise FileNotFoundError("Не найдена папка с примерами плохого кода!")
+
+    if test == 'ast' or test == 'all':
+        run_ast_tests()
+
+    if test == 'st' or test == 'all':
+        run_st_tests()
+
+    if test == 'tc' or test == 'all':
+        run_tc_tests()
+
+    if test == 'ar' or test == 'all':
+        run_ar_tests()
 
 
 if __name__ == '__main__':

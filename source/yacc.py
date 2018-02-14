@@ -1,9 +1,8 @@
-import ply.yacc as yacc
-import lex
+import ply.lex as ply_lex
+import ply.yacc as ply_yacc
 
 import syntax_tree as ast
-
-tokens = lex.tokens  # токены были определены в файле lex.py #
+from lex import *
 
 """
 # Подробное описание работы с YACC можно найти в документации Ply
@@ -321,13 +320,17 @@ def p_error(p):
     raise SyntaxError(f"Syntax error in input! Text: {p}")
 
 
-parser = yacc.yacc()
+parser = ply_yacc.yacc()
 
 
 # Функция для разбора программы - именно ее использует конечный пользователь #
 def parse_program(file_path) -> ast.Program:
+    global parser
     global text
     with open(file_path) as file:
         text = file.read()
-    result = parser.parse(text, tracking=True)
+
+    lexer = ply_lex.lex()
+    result = parser.parse(text, tracking=True, lexer=lexer)
+
     return result

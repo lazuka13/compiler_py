@@ -139,9 +139,10 @@ class TableFiller(Visitor):
             print(f'extends {class_info.super_class_name}')
             self.table.get_class(class_info.super_class_name, Position(0, 0))
 
+        print(f'    fields:')
         for var_name in class_info.vars_names:
             variable_info = self.table.get_variable(var_name, Position(0, 0))
-            print(self._format_variable_info(variable_info))
+            print(f'        {self._format_variable_info(variable_info)}')
 
         for method_name in class_info.methods_names:
             method_info = self.table.get_method(method_name, Position(0, 0))

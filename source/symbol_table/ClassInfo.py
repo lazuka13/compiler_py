@@ -51,7 +51,7 @@ class ClassInfo(Identifier):
             raise SyntaxError(f'Variable redeclaration, {declared.type_of.get_type_string()} {declared.name} already '
                               f'declared at {declared.position}! Position: {variable.position}')
         self.vars_names.append(variable.name)
-        self.variables_block.update((variable.name, variable))
+        self.variables_block[variable.name] = variable
 
     def add_super_class(self, super_class_name: str):
         """

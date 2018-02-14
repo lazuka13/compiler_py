@@ -73,6 +73,8 @@ class TypeInfo:
         """
         if self.type_enum == other.type_enum and self.type_enum != TypeEnum.UserClass:
             return True
-        if self.type_enum and other.type_enum and self.user_class_name == other.user_class_name:
+        if self.type_enum == TypeEnum.UserClass and \
+                other.type_enum == TypeEnum.UserClass and \
+                self.user_class_name == other.user_class_name:
             return True
         return False

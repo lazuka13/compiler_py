@@ -1,6 +1,7 @@
 from .base import Visitable, Position
-from .types import Type
+from .expressions import Expr
 from .statements import StatementList
+from .types import Type
 
 """
 Тут описаны все типы деклараций в языке MiniJava
@@ -67,7 +68,7 @@ class MethodDecl(Visitable):
     """
 
     def __init__(self, access_modifier: str, type_of: Type, id: str, args: ArgDeclList, vars: VarDeclList,
-                 statements: StatementList, result: Type, position: Position):
+                 statements: StatementList, result: Expr, position: Position):
         Visitable.__init__(self, position)
         self.access_modifier = access_modifier
         self.type_of = type_of

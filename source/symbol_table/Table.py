@@ -166,4 +166,4 @@ class Table:
         Удаляет Scope таблицы
         :return:
         """
-        self.blocks.clear()
+        self.blocks.pop(len(self.blocks) - 1)

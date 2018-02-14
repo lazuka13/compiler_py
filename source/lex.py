@@ -1,5 +1,3 @@
-import ply.lex as lex
-
 """
 # Подробное описание работы с LEX можно найти в документации Ply
 # http://www.dabeaz.com/ply/ply.html
@@ -125,5 +123,3 @@ def find_column(input, token):
     column = (token.lexpos - last_cr) + 1
     return column
 
-
-lexer = lex.lex()
