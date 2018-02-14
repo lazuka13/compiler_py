@@ -1,10 +1,11 @@
 import os
 from pathlib import Path
 
-import syntax_tree as ast
-import symbol_table as st
-import type_checker as tc
-import activation_records as ar
+from activation_records.FrameFiller import FrameFiller
+from symbol_table.Table import Table
+from symbol_table.TableFiller import TableFiller
+from syntax_tree import Printer
+from type_checker.TypeChecker import TypeChecker
 from yacc import parse_program
 
 
@@ -30,7 +31,7 @@ def run_ast_tests():
     for sample in good_samples:
         print(f'Разбираем хорошую программу {sample} ...')
         program = parse_program(Path('../samples/good') / Path(sample))
-        printer = ast.Printer(Path('../tests/ast/good') / Path(sample.replace('.java', '.gv')))
+        printer = Printer(Path('../tests/ast/good') / Path(sample.replace('.java', '.gv')))
         printer.visit(program)
         printer.print_to_file()
         print()
@@ -46,7 +47,7 @@ def run_ast_tests():
         print(f'Разбираем плохую программу {sample} ...')
         try:
             program = parse_program(Path('../samples/bad') / Path(sample))
-            printer = ast.Printer(Path('../tests/ast/bad') / Path(sample.replace('.java', '.gv')))
+            printer = Printer(Path('../tests/ast/bad') / Path(sample.replace('.java', '.gv')))
             printer.visit(program)
             printer.print_to_file()
         except SyntaxError as error:
@@ -77,8 +78,8 @@ def run_st_tests():
         print(f'Разбираем хорошую программу {sample} ...')
         program = parse_program(Path('../samples/good') / Path(sample))
 
-        table = st.Table()
-        filler = st.TableFiller(table)
+        table = Table()
+        filler = TableFiller(table)
         filler.parse_program(program, print_table=True)
         print()
 
@@ -94,8 +95,8 @@ def run_st_tests():
         try:
             program = parse_program(Path('../samples/bad') / Path(sample))
 
-            table = st.Table()
-            filler = st.TableFiller(table)
+            table = Table()
+            filler = TableFiller(table)
             filler.parse_program(program, print_table=True)
         except SyntaxError as error:
             print(error)
@@ -125,9 +126,9 @@ def run_tc_tests():
         print(f'Разбираем хорошую программу {sample} ...')
         program = parse_program(Path('../samples/good') / Path(sample))
 
-        table = st.Table()
+        table = Table()
 
-        type_checker = tc.TypeChecker()
+        type_checker = TypeChecker()
         type_checker.check_ast_st(program, table)
         print()
 
@@ -143,9 +144,9 @@ def run_tc_tests():
         try:
             program = parse_program(Path('../samples/bad') / Path(sample))
 
-            table = st.Table()
+            table = Table()
 
-            type_checker = tc.TypeChecker()
+            type_checker = TypeChecker()
             type_checker.check_ast_st(program, table)
         except SyntaxError as error:
             print(error)
@@ -175,9 +176,9 @@ def run_ar_tests():
         print(f'Разбираем хорошую программу {sample} ...')
         program = parse_program(Path('../samples/good') / Path(sample))
 
-        table = st.Table()
+        table = Table()
 
-        frame_filler = ar.FrameFiller(table)
+        frame_filler = FrameFiller(table)
         frame_filler.fill()
         print()
 
@@ -193,9 +194,9 @@ def run_ar_tests():
         try:
             program = parse_program(Path('../samples/bad') / Path(sample))
 
-            table = st.Table()
+            table = Table()
 
-            frame_filler = ar.FrameFiller(table)
+            frame_filler = FrameFiller(table)
             frame_filler.fill()
         except SyntaxError as error:
             print(error)
@@ -206,8 +207,8 @@ def run_tests():  # TODO сделать через CLICK с параметром
     if not os.path.exists('../tests'):
         os.mkdir('../tests')
 
-    #run_ast_tests()
-    #run_st_tests()
+    run_ast_tests()
+    run_st_tests()
     run_tc_tests()
     run_ar_tests()
 
