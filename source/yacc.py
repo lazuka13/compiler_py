@@ -318,8 +318,7 @@ def p_empty(_):
 
 
 def p_error(p):
-    print(f"Syntax error in input! Text: {p}")
-    exit(1)
+    raise SyntaxError(f"Syntax error in input! Text: {p}")
 
 
 parser = yacc.yacc()
