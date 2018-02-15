@@ -1,5 +1,6 @@
 from .base import Visitable, Position
 from .expressions import Expr
+from .expressions import Id
 from .statements import StatementList
 from .types import Type
 
@@ -97,7 +98,7 @@ class ClassDecl(Visitable):
     Декларация класса (не главного)
     """
 
-    def __init__(self, id: str = None, extends: str = None, vars: VarDeclList = None, methods: MethodDeclList = None,
+    def __init__(self, id: Id = None, extends: Id = None, vars: VarDeclList = None, methods: MethodDeclList = None,
                  position: Position = None):
         Visitable.__init__(self, position)
         self.id = id

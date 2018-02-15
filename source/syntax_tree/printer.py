@@ -10,7 +10,7 @@ class Printer(Visitor):
         Visitor.__init__(self)
         self.path = path
         self.out = 'digraph g {graph [ rankdir = LR ]; ' \
-                   'node [fontsize="18" shape="box"]; ' \
+                   'node [fontsize="18" shape="record"]; ' \
                    'edge [];' \
                    '\n'
 
@@ -80,24 +80,28 @@ class Printer(Visitor):
         elif isinstance(obj, ThisExpr):
             self.visit_this_expr(obj)
 
-    def visit_binary_expr(self, obj: BinaryExpr):
-        self.print_vertex(obj, obj.label)
-        obj.left.accept(self)
-        obj.right.accept(self)
-        self.print_edge(obj, obj.right, 'right')
-        self.print_edge(obj, obj.left, 'left')
+    def visit_program(self, obj: Program):
+        self.print_vertex(obj, f"Program | {obj.position}")
+        obj.main.accept(self)
+        self.print_edge(obj, obj.main)
+        if obj.class_decl_list is not None:
+            for class_decl in obj.class_decl_list:
+                class_decl.accept(self)
+                self.print_edge(obj, class_decl)
 
-    def visit_id(self, obj):
-        self.print_vertex(obj, f'id: {obj.name}')
-
-    def visit_true_expr(self, obj):
-        self.print_vertex(obj, 'True')
-
-    def visit_false_expr(self, obj):
-        self.print_vertex(obj, 'False')
+    def visit_main_class(self, obj: MainClass):
+        self.print_vertex(obj, f"Main Class | {obj.id.name} | {obj.position}")
+        obj.id.accept(self)
+        self.print_edge(obj, obj.id)
+        if obj.statement_list is not None:
+            for statement in obj.statement_list:
+                statement.accept(self)
+                self.print_edge(obj, statement)
 
     def visit_class_decl(self, obj: ClassDecl):
-        self.print_vertex(obj, 'Class')
+        extends = "| extends " + obj.extends.name if obj.extends is not None else ""
+        self.print_vertex(obj, f'Class | {obj.id.name} {extends} '
+                               f'| {obj.position}')
         obj.id.accept(self)
         self.print_edge(obj, obj.id)
         if obj.method_decl_list is not None:
@@ -105,25 +109,21 @@ class Printer(Visitor):
                 method.accept(self)
                 self.print_edge(obj, method)
 
-    def visit_main_class(self, obj: MainClass):
-        self.print_vertex(obj, "Main")
-        obj.id.accept(self)
-        self.print_edge(obj, obj.id)
-        obj.param_id.accept(self)
-        self.print_edge(obj, obj.param_id, 'param_id')
-        if obj.statement_list is not None:
-            for statement in obj.statement_list:
-                statement.accept(self)
-                self.print_edge(obj, statement, 'statement')
+    def visit_var_decl(self, obj: VarDecl):
+        self.print_vertex(obj, f'Var | {obj.type_of.label} {obj.id.name} | {obj.id.position}')
+
+    def visit_arg_decl(self, obj: ArgDecl):
+        self.print_vertex(obj, f'Arg | {obj.type_of.label} {obj.id.name} | {obj.id.position}')
 
     def visit_method_decl(self, obj: MethodDecl):
-        self.print_vertex(obj, 'method ' + obj.type_of.label + ' ' + obj.access_modifier)
+        self.print_vertex(obj, f'Method | {obj.access_modifier} {obj.type_of.label} {obj.id.name}() | '
+                               f'{obj.id.position}')
         obj.id.accept(self)
         self.print_edge(obj, obj.id)
         if obj.var_decl_list is not None:
             for var in obj.var_decl_list:
                 var.accept(self)
-                self.print_edge(obj, var, 'var')
+                self.print_edge(obj, var, 'local var')
         if obj.statement_list is not None:
             for statement in obj.statement_list:
                 statement.accept(self)
@@ -131,45 +131,52 @@ class Printer(Visitor):
         if obj.arg_decl_list is not None:
             for arg in obj.arg_decl_list:
                 arg.accept(self)
-                self.print_edge(obj, arg, 'arg')
+                self.print_edge(obj, arg, 'argument')
         obj.result.accept(self)
-        self.print_edge(obj, obj.result, 'result')
+        self.print_edge(obj, obj.result, 'returns')
 
-    def visit_program(self, obj: Program):
-        self.print_vertex(obj, f"Program | {obj.position}")
-        obj.main.accept(self)
-        self.print_edge(obj, obj.main, label='PROGRAM TO MAIN')
-        if obj.class_decl_list is not None:
-            for class_decl in obj.class_decl_list:
-                class_decl.accept(self)
-                self.print_edge(obj, class_decl)
-
-    def visit_integer_expr(self, obj: IntegerExpr):
-        self.print_vertex(obj, f'int: {obj.value}')
-
-    def visit_assign_statement(self, obj: AssignStatement):
-        self.print_vertex(obj, '=')
+    def visit_binary_expr(self, obj: BinaryExpr):
+        self.print_vertex(obj, f'Binary | {obj.label} | {obj.position}')
         obj.left.accept(self)
         obj.right.accept(self)
-        self.print_edge(obj, obj.left, 'left')
         self.print_edge(obj, obj.right, 'right')
+        self.print_edge(obj, obj.left, 'left')
+
+    def visit_id(self, obj : Id):
+        self.print_vertex(obj, f'Id | {obj.name} | {obj.position}')
+
+    def visit_true_expr(self, obj : TrueExpr):
+        self.print_vertex(obj, f'Value | boolean | true | {obj.position}')
+
+    def visit_false_expr(self, obj : FalseExpr):
+        self.print_vertex(obj, f'Value | boolean | false | {obj.position}')
+
+    def visit_integer_expr(self, obj: IntegerExpr):
+        self.print_vertex(obj, f'Value | int | {obj.value} | {obj.position}')
+
+    def visit_assign_statement(self, obj: AssignStatement):
+        self.print_vertex(obj, f'Assign | {obj.left.name} | {obj.position}')
+        obj.left.accept(self)
+        obj.right.accept(self)
+        self.print_edge(obj, obj.left)
+        self.print_edge(obj, obj.right)
 
     def visit_if_statement(self, obj: IfStatement):
-        self.print_vertex(obj, 'if')
+        self.print_vertex(obj, f'If Else | {obj.position}')
         obj.condition.accept(self)
         self.print_edge(obj, obj.condition, 'condition')
         obj.if_false.accept(self)
-        self.print_edge(obj, obj.if_false, 'if_false')
+        self.print_edge(obj, obj.if_false, 'if False')
         obj.if_true.accept(self)
-        self.print_edge(obj, obj.if_true, 'if_true')
+        self.print_edge(obj, obj.if_true, 'if True')
 
     def visit_not_expr(self, obj: NotExpr):
-        self.print_vertex(obj, 'not_expression')
+        self.print_vertex(obj, f'not | {obj.position}')
         obj.right.accept(self)
         self.print_edge(obj, obj.right)
 
     def visit_call_method_expr(self, obj: CallMethodExpr):
-        self.print_vertex(obj, 'call_method')
+        self.print_vertex(obj, f' .{obj.id.name}() | {obj.position}')
         obj.id.accept(self)
         self.print_edge(obj, obj.id)
         obj.expr.accept(self)
@@ -180,17 +187,17 @@ class Printer(Visitor):
                 self.print_edge(obj, param, 'parameter')
 
     def visit_new_int_array_expr(self, obj: NewIntArrExpr):
-        self.print_vertex(obj, 'new int []')
+        self.print_vertex(obj, f'new int [] | {obj.position}')
         obj.size.accept(self)
         self.print_edge(obj, obj.size, 'size')
 
     def visit_new_object_expr(self, obj: NewObjectExpr):
-        self.print_vertex(obj, 'new')
+        self.print_vertex(obj, f'new | {obj.position}')
         obj.id.accept(self)
         self.print_edge(obj, obj.id)
 
     def visit_random_access_assign_statement(self, obj: RandomAccessAssignStatement):
-        self.print_vertex(obj, '=')
+        self.print_vertex(obj, f'Assign | {obj.id.name}[{obj.position_in_arr}] | {obj.position}')
         obj.id.accept(self)
         self.print_edge(obj, obj.id, 'array')
         obj.position_in_arr.accept(self)
@@ -198,44 +205,36 @@ class Printer(Visitor):
         obj.expr.accept(self)
         self.print_edge(obj, obj.expr)
 
-    def visit_length_expr(self, obj):
-        self.print_vertex(obj, 'length')
+    def visit_length_expr(self, obj: LengthExpr):
+        self.print_vertex(obj, f'Length | {obj.position}')
         obj.obj.accept(self)
         self.print_edge(obj, obj.obj, 'object')
 
     def visit_print_line_statement(self, obj: PrintLineStatement):
-        self.print_vertex(obj, 'print_line_statement')
+        self.print_vertex(obj, f'Println | {obj.position}')
         obj.obj.accept(self)
         self.print_edge(obj, obj.obj)
 
     def visit_while_statement(self, obj: WhileStatement):
-        self.print_vertex(obj, 'while')
+        self.print_vertex(obj, f'While | {obj.position}')
         obj.condition.accept(self)
         self.print_edge(obj, obj.condition, 'condition')
         obj.action.accept(self)
         self.print_edge(obj, obj.action, 'action')
 
     def visit_statements(self, obj: Statements):
-        self.print_vertex(obj, 'statements')
+        self.print_vertex(obj, f'Statements[] | {obj.position}')
         if obj.statement_list is not None:
             for statement in obj.statement_list:
                 statement.accept(self)
                 self.print_edge(obj, statement)
 
     def visit_random_access_expr(self, obj: RandomAccessExpr):
-        self.print_vertex(obj, 'access_to_position')
+        self.print_vertex(obj, f'[] | {obj.position}')
         obj.object.accept(self)
-        self.print_edge(obj, obj.object, 'object')
+        self.print_edge(obj, obj.object, 'array')
         obj.position_in_arr.accept(self)
-        self.print_edge(obj, obj.position_in_arr, 'position')
-
-    def visit_arg_decl(self, obj: ArgDecl):
-        self.print_vertex(obj, obj.type_of.label)
-        obj.id.accept(self)
-        self.print_edge(obj, obj.id)
-
-    def visit_var_decl(self, obj: VarDecl):
-        self.print_vertex(obj, obj.type_of.label + " " + obj.id.name)
+        self.print_edge(obj, obj.position_in_arr, 'index')
 
     def visit_this_expr(self, obj: ThisExpr):
-        self.print_vertex(obj, 'this')
+        self.print_vertex(obj, f'This | {obj.position}')

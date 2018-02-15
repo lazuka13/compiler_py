@@ -17,7 +17,9 @@ class ExprList():
 
 
 class BinaryExpr(Expr):
-    def __init__(self, left: Expr, kind_of: str, right: Expr, position: Position):  # TODO переделать на Enum
+    def __init__(self, left: Expr, kind_of: str, right: Expr, position: Position):
+        if kind_of == '<':
+            kind_of = '\<'
         Expr.__init__(self, kind_of, position)
         self.left = left
         self.right = right
