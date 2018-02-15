@@ -9,7 +9,10 @@ class Printer(Visitor):
     def __init__(self, path):
         Visitor.__init__(self)
         self.path = path
-        self.out = "digraph g {\n\n"
+        self.out = 'digraph g {graph [ rankdir = LR ]; ' \
+                   'node [fontsize="18" shape="box"]; ' \
+                   'edge [];' \
+                   '\n'
 
     def print_to_file(self):
         self.out = self.out + "}"
@@ -133,7 +136,7 @@ class Printer(Visitor):
         self.print_edge(obj, obj.result, 'result')
 
     def visit_program(self, obj: Program):
-        self.print_vertex(obj, "Program")
+        self.print_vertex(obj, f"Program | {obj.position}")
         obj.main.accept(self)
         self.print_edge(obj, obj.main, label='PROGRAM TO MAIN')
         if obj.class_decl_list is not None:
@@ -224,7 +227,7 @@ class Printer(Visitor):
         obj.object.accept(self)
         self.print_edge(obj, obj.object, 'object')
         obj.position_in_arr.accept(self)
-        self.print_edge(obj, obj.position, 'position')
+        self.print_edge(obj, obj.position_in_arr, 'position')
 
     def visit_arg_decl(self, obj: ArgDecl):
         self.print_vertex(obj, obj.type_of.label)
