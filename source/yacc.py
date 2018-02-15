@@ -271,10 +271,8 @@ def p_exp_vars(p):
         | BANG exp
         | L_ROUND exp R_ROUND
     """
-    if p[1] == 'true':
-        p[0] = ast.TrueExpr(ast.Position(*get_pos(p)))
-    elif p[1] == 'false':
-        p[0] = ast.FalseExpr(ast.Position(*get_pos(p)))
+    if p[1] == 'true' or p[1] == 'false':
+        p[0] = ast.ValueExpr(ast.ValueEnum.BOOLEAN, p[1], ast.Position(*get_pos(p)))
     elif p[1] == 'this':
         p[0] = ast.ThisExpr(ast.Position(*get_pos(p)))
     elif len(p) == 6:
@@ -286,7 +284,7 @@ def p_exp_vars(p):
     elif len(p) == 4:
         p[0] = p[2]
     elif isinstance(p[1], int):
-        p[0] = ast.IntegerExpr(p[1], ast.Position(*get_pos(p)))
+        p[0] = ast.ValueExpr(ast.ValueEnum.INTEGER, p[1], ast.Position(*get_pos(p)))
     else:
         p[0] = p[1]
 

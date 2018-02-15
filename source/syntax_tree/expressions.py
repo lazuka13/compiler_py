@@ -1,4 +1,5 @@
 from .base import Visitable, Position
+from enum import Enum
 
 
 class Expr(Visitable):
@@ -16,11 +17,37 @@ class ExprList():
         self.expr_list.append(expr)
 
 
+class BinaryEnum(Enum):
+    PLUS = 1
+    MINUS = 2
+    MULT = 3
+    MOD = 4
+    AND = 5
+    OR = 6
+    LESS = 7
+
+    @staticmethod
+    def clean_label(label):
+        if label == '+':
+            return BinaryEnum.PLUS, '+'
+        if label == '-':
+            return BinaryEnum.MINUS, '-'
+        if label == '%':
+            return BinaryEnum.MOD, '%'
+        if label == '*':
+            return BinaryEnum.MULT, '*'
+        if label == '&&':
+            return BinaryEnum.AND, '&&'
+        if label == '||':
+            return BinaryEnum.OR, '\|\|'
+        if label == '<':
+            return BinaryEnum.LESS, '\<'
+
+
 class BinaryExpr(Expr):
-    def __init__(self, left: Expr, kind_of: str, right: Expr, position: Position):
-        if kind_of == '<':
-            kind_of = '\<'
-        Expr.__init__(self, kind_of, position)
+    def __init__(self, left: Expr, label: str, right: Expr, position: Position):
+        self.binary_enum, self.label = BinaryEnum.clean_label(label)
+        Expr.__init__(self, label, position)
         self.left = left
         self.right = right
         self.id = right
@@ -34,26 +61,22 @@ class CallMethodExpr(Expr):
         self.expr_list = params.expr_list if params is not None else []
 
 
-class FalseExpr(Expr):
-    def __init__(self, position: Position):
-        Expr.__init__(self, 'False', position)
+class ValueEnum(Enum):
+    INTEGER = 1
+    BOOLEAN = 2
 
 
-class TrueExpr(Expr):
-    def __init__(self, position: Position):
-        Expr.__init__(self, 'True', position)
+class ValueExpr(Expr):
+    def __init__(self, value_enum, value, position):
+        Expr.__init__(self, value, position)
+        self.value_enum = value_enum
+        self.value = value
 
 
 class Id(Expr):
     def __init__(self, name, position: Position):
         Expr.__init__(self, name, position)
         self.name = name
-
-
-class IntegerExpr(Expr):  # TODO подумать про ValueExpr
-    def __init__(self, value, position):
-        Expr.__init__(self, str(value), position)
-        self.value = value
 
 
 class LengthExpr(Expr):

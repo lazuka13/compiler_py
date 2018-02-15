@@ -3,8 +3,6 @@ class Type:
         self.label = label
 
 
-# TODO Объединить классы?
-
 class BasicType(Type):
     def __init__(self, label):
         Type.__init__(self, label)

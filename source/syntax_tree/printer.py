@@ -35,10 +35,6 @@ class Printer(Visitor):
             self.visit_binary_expr(obj)
         elif isinstance(obj, Id):
             self.visit_id(obj)
-        elif isinstance(obj, TrueExpr):
-            self.visit_true_expr(obj)
-        elif isinstance(obj, FalseExpr):
-            self.visit_false_expr(obj)
         elif isinstance(obj, ClassDecl):
             self.visit_class_decl(obj)
         elif isinstance(obj, MainClass):
@@ -47,8 +43,8 @@ class Printer(Visitor):
             self.visit_method_decl(obj)
         elif isinstance(obj, Program):
             self.visit_program(obj)
-        elif isinstance(obj, IntegerExpr):
-            self.visit_integer_expr(obj)
+        elif isinstance(obj, ValueExpr):
+            self.visit_value_expr(obj)
         elif isinstance(obj, AssignStatement):
             self.visit_assign_statement(obj)
         elif isinstance(obj, IfStatement):
@@ -142,17 +138,15 @@ class Printer(Visitor):
         self.print_edge(obj, obj.right, 'right')
         self.print_edge(obj, obj.left, 'left')
 
-    def visit_id(self, obj : Id):
+    def visit_id(self, obj: Id):
         self.print_vertex(obj, f'Id | {obj.name} | {obj.position}')
 
-    def visit_true_expr(self, obj : TrueExpr):
-        self.print_vertex(obj, f'Value | boolean | true | {obj.position}')
-
-    def visit_false_expr(self, obj : FalseExpr):
-        self.print_vertex(obj, f'Value | boolean | false | {obj.position}')
-
-    def visit_integer_expr(self, obj: IntegerExpr):
-        self.print_vertex(obj, f'Value | int | {obj.value} | {obj.position}')
+    def visit_value_expr(self, obj: ValueExpr):
+        if obj.value_enum == ValueEnum.INTEGER:
+            label = 'integer'
+        else:
+            label = 'boolean'
+        self.print_vertex(obj, f'Value | {label} | {obj.value} | {obj.position}')
 
     def visit_assign_statement(self, obj: AssignStatement):
         self.print_vertex(obj, f'Assign | {obj.left.name} | {obj.position}')

@@ -3,11 +3,11 @@ from pathlib import Path
 
 import click
 
-from activation_records.FrameFiller import FrameFiller
-from symbol_table.Table import Table
-from symbol_table.TableFiller import TableFiller
+from activation_records.frame_filler import FrameFiller
+from symbol_table.table import Table
+from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
-from type_checker.TypeChecker import TypeChecker
+from type_checker.type_checker import TypeChecker
 from yacc import parse_program
 
 
@@ -119,8 +119,8 @@ def run_tc_tests():
         filler = TableFiller(table)
         filler.fill_table(program, print_table=False)
 
-        type_checker = TypeChecker()
-        type_checker.check_ast_st(program, table)
+        type_checker = TypeChecker(table)
+        type_checker.check_ast_st(program)
         print()
 
     if not os.path.exists('../tests/st/bad'):
@@ -136,8 +136,8 @@ def run_tc_tests():
             filler = TableFiller(table)
             filler.fill_table(program, print_table=False)
 
-            type_checker = TypeChecker()
-            type_checker.check_ast_st(program, table)
+            type_checker = TypeChecker(table)
+            type_checker.check_ast_st(program)
         except SyntaxError as error:
             print(error)
         print()
