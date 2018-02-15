@@ -1,5 +1,7 @@
 from enum import Enum
 
+from ir_tree.expressions.Temp import Temp
+from syntax_tree import Position
 from .TempAddress import TempAddress
 
 
@@ -14,6 +16,9 @@ class RecordsType(Enum):
 
 class Access:
     def __init__(self):
+        pass
+
+    def get_exp(self, fp: Temp, position: Position):
         pass
 
     def print(self, frame_pointer: TempAddress):

@@ -28,7 +28,8 @@ if __name__ == '__main__':
     print('### Символьная таблица ###')
     table = Table()
     filler = TableFiller(table)
-    filler.parse_program(program, print_table=True)
+    filler.fill_table(program, print_table=True)
+    table = filler.table
     print()
 
     # проверка тайпчекером
@@ -36,6 +37,10 @@ if __name__ == '__main__':
     type_checker = TypeChecker()
     type_checker.check_ast_st(program, table)
     print()
+
+    # заполняем class struct
+    filler.fill_class_struct()
+    table = filler.table
 
     # записи активаций
     print('### Записи активаций ###')

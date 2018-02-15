@@ -1,7 +1,6 @@
 from enum import Enum
 
 from syntax_tree import Position
-
 from .IExp import IExp
 
 

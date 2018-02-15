@@ -21,7 +21,7 @@ class TableFiller(Visitor):
         Visitor.__init__(self)
         self.table = table
 
-    def parse_program(self, program: Program, print_table: bool = True):
+    def fill_table(self, program: Program, print_table: bool = True):
         """
         Отвечает за обход AST и заполнение таблицы
         :param program: корень AST (class Program)
@@ -40,6 +40,26 @@ class TableFiller(Visitor):
                     print()
                 except SyntaxError as error:
                     print(error)
+
+    def fill_class_struct(self):
+        classes_names = self.table.classes_names
+        for class_name in classes_names:
+            class_info = self.table.get_class(class_name)
+            class_struct = class_info.class_struct
+            class_struct.add_class_name(class_info.name)
+            classes_stack = []
+            classes_stack.append(class_info)
+            while class_info.super_class_name is not None:
+                class_info: ClassInfo = self.table.get_class(class_info.super_class_name)
+                classes_stack.append(class_info)
+            added_methods = set()
+            for class_info in classes_stack:
+                for var_name in class_info.vars_names:
+                    var_info = class_info.variables_block[var_name]
+                    class_struct.add_field(var_info)
+                for method_info in class_info.methods_block.values():
+                    added_methods.add(method_info)
+                    class_struct.add_to_vtable(method_info)
 
     def visit(self, visitable: Visitable):
         """

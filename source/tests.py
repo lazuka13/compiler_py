@@ -11,6 +11,8 @@ from type_checker.TypeChecker import TypeChecker
 from yacc import parse_program
 
 
+# TODO обновить тесты с учетом example! Хотя нужно ли заполнение class struct сейчас?
+
 def run_ast_tests():
     """
     Прогоняет тесты построения AST для всех программ
@@ -73,7 +75,7 @@ def run_st_tests():
 
         table = Table()
         filler = TableFiller(table)
-        filler.parse_program(program, print_table=True)
+        filler.fill_table(program, print_table=True)
         print()
 
     if not os.path.exists('../tests/st/bad'):
@@ -87,7 +89,7 @@ def run_st_tests():
 
             table = Table()
             filler = TableFiller(table)
-            filler.parse_program(program, print_table=True)
+            filler.fill_table(program, print_table=True)
         except SyntaxError as error:
             print(error)
         print()
@@ -115,7 +117,7 @@ def run_tc_tests():
 
         table = Table()
         filler = TableFiller(table)
-        filler.parse_program(program, print_table=False)
+        filler.fill_table(program, print_table=False)
 
         type_checker = TypeChecker()
         type_checker.check_ast_st(program, table)
@@ -132,7 +134,7 @@ def run_tc_tests():
 
             table = Table()
             filler = TableFiller(table)
-            filler.parse_program(program, print_table=False)
+            filler.fill_table(program, print_table=False)
 
             type_checker = TypeChecker()
             type_checker.check_ast_st(program, table)
@@ -163,7 +165,7 @@ def run_ar_tests():
 
         table = Table()
         filler = TableFiller(table)
-        filler.parse_program(program, print_table=False)
+        filler.fill_table(program, print_table=False)
 
         frame_filler = FrameFiller(table)
         frame_filler.fill()

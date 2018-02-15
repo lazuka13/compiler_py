@@ -50,7 +50,7 @@ class Id(Expr):
         self.name = name
 
 
-class IntegerExpr(Expr):  # TODO подумать про структуру
+class IntegerExpr(Expr):  # TODO подумать про ValueExpr
     def __init__(self, value, position):
         Expr.__init__(self, str(value), position)
         self.value = value

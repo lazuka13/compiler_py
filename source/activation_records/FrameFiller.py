@@ -1,3 +1,4 @@
+from ir_tree.NameConventions import *
 from symbol_table.Table import Table
 from symbol_table.VariableInfo import VariableInfo
 from syntax_tree import Position
@@ -21,7 +22,7 @@ class FrameFiller:
             for method in methods_names:
                 method_info = self.table.get_method(method, position)
                 frame = X86MiniJavaFrame()
-                this_variable = VariableInfo('this', position, class_info.type_info)
+                this_variable = VariableInfo(THIS_NAME, position, class_info.type_info)
                 frame.add_formal(this_variable)
                 for arg_info in method_info.args_block:
                     frame.add_formal(arg_info)
@@ -30,7 +31,7 @@ class FrameFiller:
                 frame.add_address_exit()
                 frame.add_address_return_value(method_info.return_type)
                 print(f'Method name: {method_info.name}')
-                activation = frame.find_local_or_formal('this')
+                activation = frame.find_local_or_formal(THIS_NAME)
                 print(f'this: {activation.print(frame.FP())}')
                 for arg_name in method_info.args_names:
                     activation = frame.find_local_or_formal(arg_name)

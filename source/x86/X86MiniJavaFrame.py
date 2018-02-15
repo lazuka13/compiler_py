@@ -5,33 +5,14 @@ from activation_records.InRegAccess import InRegAccess
 from activation_records.TempAddress import TempAddress
 from symbol_table.TypeInfo import TypeInfo, TypeEnum
 from symbol_table.VariableInfo import VariableInfo
-
-WORD_SIZE = 4
-INT_SIZE = WORD_SIZE
-BOOLEAN_SIZE = WORD_SIZE
-REFERENCE_SIZE = WORD_SIZE
+from x86.X86MiniJavaTypeSpec import X86MiniJavaTypeSpec
 
 MAX_IN_REG = 4
 EXIT_ADDRESS_NAME = "@EXIT_ADDRESS@"
 RETURN_ADDRESS_NAME = "@RETURN_ADDRESS@"
 
 
-def type_size(type_enum: TypeEnum):
-    if type_enum == TypeEnum.UserClass:
-        return REFERENCE_SIZE
-    elif type_enum == TypeEnum.Int:
-        return INT_SIZE
-    elif type_enum == TypeEnum.IntArray:
-        return REFERENCE_SIZE
-    elif type_enum == TypeEnum.Boolean:
-        return BOOLEAN_SIZE
-
-
 class X86MiniJavaFrame(IFrame):
-    """
-    LocalAddress = access address + FP
-    FormalAddress = access address or regIndex
-    """
 
     def __init__(self):
         IFrame.__init__(self)
@@ -44,26 +25,30 @@ class X86MiniJavaFrame(IFrame):
         self.address_return_value_index = 0
         self.formal_top_pointer = 0
         self.local_top_pointer = 0
+        self.type_spec = X86MiniJavaTypeSpec()
+
+    def type_size(self, type_enum: TypeEnum):
+        return self.type_spec.type_size(type_enum)
 
     def add_formal(self, var_info: VariableInfo):
-        var: Access = self._create_formal(RecordsType.RT_Formal, type_size(var_info.type_of.type_enum))
+        var: Access = self._create_formal(RecordsType.RT_Formal, self.type_size(var_info.type_of.type_enum))
         self.formal_access[var_info.name] = var
         self.formal_list.append(var)
 
     def add_local(self, var_info: VariableInfo):
-        var: Access = InFrameAccess(RecordsType.RT_Formal, type_size(var_info.type_of.type_enum),
+        var: Access = InFrameAccess(RecordsType.RT_Formal, self.type_size(var_info.type_of.type_enum),
                                     self.local_top_pointer)
         self.local_access[var_info.name] = var
-        self.local_top_pointer += type_size(var_info.type_of.type_enum)
+        self.local_top_pointer += self.type_size(var_info.type_of.type_enum)
 
     def add_address_exit(self):
-        var: Access = self._create_formal(RecordsType.RT_AddressExit, REFERENCE_SIZE)
+        var: Access = self._create_formal(RecordsType.RT_AddressExit, self.type_spec.reference_size())
         self.formal_access[EXIT_ADDRESS_NAME] = var
         self.address_exit_index = len(self.formal_list)
         self.formal_list.append(var)
 
     def add_address_return_value(self, type_of: TypeInfo):
-        var: Access = self._create_formal(RecordsType.RT_AddressReturnValue, REFERENCE_SIZE)
+        var: Access = self._create_formal(RecordsType.RT_AddressReturnValue, self.type_spec.reference_size())
         self.formal_access[RETURN_ADDRESS_NAME] = var
         self.address_return_value_index = len(self.formal_list)
         self.formal_list.append(var)

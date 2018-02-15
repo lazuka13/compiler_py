@@ -1,3 +1,6 @@
+from symbol_table.TypeInfo import TypeEnum
+
+
 class IFrame:
     def __init__(self):
         pass
@@ -29,5 +32,14 @@ class IFrame:
     def return_address(self):
         pass
 
+    def FP(self):
+        pass
+
+    def SP(self):
+        pass
+
     def word_type(self):
+        pass
+
+    def type_size(self, type_enum: TypeEnum):
         pass
