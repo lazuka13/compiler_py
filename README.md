@@ -40,7 +40,7 @@ class Fac {
 
 
 **Abstract Syntax Tree**
-![whoops](docs/images/Factorial.png "Factorial AST")
+<img src="./docs/images/Factorial.png"/>  
 
 **Symbol Table**
 ```
@@ -57,7 +57,6 @@ class Fac (line: 7, col: 1)
             int num (line: 8, col: 27)
         local variables:
             int num_aux (line: 9, col: 2)
-
 ```
 
 **Activation Records**
