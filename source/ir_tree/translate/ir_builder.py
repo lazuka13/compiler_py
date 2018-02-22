@@ -5,6 +5,7 @@ from ir_tree.label import Label
 from ir_tree.list import ExpList, StmList
 from ir_tree.name_conventions import *
 from ir_tree.statements.all import *
+from ir_tree.expressions.all import *
 from ir_tree.translate.exp_wrapper import ExpWrapper
 from ir_tree.translate.stm_wrapper import StmWrapper
 from symbol_table.table import Table

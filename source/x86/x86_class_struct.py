@@ -5,6 +5,7 @@ from ir_tree.expressions.i_exp import IExp
 from ir_tree.list import ExpList, StmList
 from ir_tree.name_conventions import *
 from ir_tree.statements.all import *
+from ir_tree.expressions.all import *
 from symbol_table.i_class_struct import IClassStruct
 from symbol_table.method_info import MethodInfo
 from symbol_table.variable_info import VariableInfo
