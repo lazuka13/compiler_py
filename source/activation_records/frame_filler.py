@@ -1,4 +1,6 @@
 from ir_tree.name_conventions import *
+from symbol_table.class_info import ClassInfo
+from symbol_table.method_info import MethodInfo
 from symbol_table.table import Table
 from symbol_table.variable_info import VariableInfo
 from syntax_tree import Position
@@ -47,3 +49,15 @@ class FrameFiller:
                 print()
             self.table.free_last_scope()
         self.filled = True
+
+    def create_frame(self, class_info: ClassInfo, method_info: MethodInfo):
+        frame = X86MiniJavaFrame()
+        this_variable = VariableInfo(THIS_NAME, Position(0, 0), class_info.type_info)
+        frame.add_formal(this_variable)
+        for arg_info in method_info.args_block:
+            frame.add_formal(arg_info)
+        for var_info in method_info.vars_block:
+            frame.add_local(var_info)
+        frame.add_address_exit()
+        frame.add_address_return_value(method_info.return_type)
+        return frame

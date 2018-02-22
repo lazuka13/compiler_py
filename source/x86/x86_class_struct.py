@@ -1,12 +1,10 @@
 from typing import List
 
 from activation_records.i_type_spec import ITypeSpec
+from ir_tree.expressions.i_exp import IExp
 from ir_tree.list import ExpList, StmList
 from ir_tree.name_conventions import *
-from ir_tree.expressions.i_exp import IExp
-from ir_tree.expressions.all import *
 from ir_tree.statements.all import *
-
 from symbol_table.i_class_struct import IClassStruct
 from symbol_table.method_info import MethodInfo
 from symbol_table.variable_info import VariableInfo
@@ -25,7 +23,7 @@ class X86MiniJavaClassStruct(IClassStruct):
         self.class_name: str = None
 
     def add_class_name(self, class_name: str):
-        self.class_name = classmethod
+        self.class_name = class_name
 
     def add_to_vtable(self, method_info: MethodInfo):
         self.vtable_indices[method_info.name] = len(self.vtable_entries)

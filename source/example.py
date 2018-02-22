@@ -2,6 +2,8 @@
 import os
 
 from activation_records.frame_filler import FrameFiller
+from ir_tree.translate.ir_builder import IRBuilder
+from ir_tree.translate.ir_printer import IRPrinter
 from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
@@ -46,4 +48,14 @@ if __name__ == '__main__':
     print('### Записи активаций ###')
     frame_filler = FrameFiller(table)
     frame_filler.fill()
+    print()
+
+    # IR Tree
+    print('### IR Tree ###')
+    builder = IRBuilder(table)
+    builder.parse(program)
+    trees = builder.trees
+    printer = IRPrinter('../tests/it_tree.gv')
+    printer.create_graph(trees)
+    printer.print_to_file()
     print()

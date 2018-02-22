@@ -1,7 +1,6 @@
-from syntax_tree import Position
-
-from .i_exp import IExp
 from ir_tree.label import Label
+from syntax_tree import Position
+from .i_exp import IExp
 
 
 class Name(IExp):
@@ -11,3 +10,4 @@ class Name(IExp):
             self.label_name = Label.get_next_enumerated_label()
         else:
             self.label_name = Label.get_label(name)
+        print(type(self.label_name))

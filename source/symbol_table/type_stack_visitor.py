@@ -1,6 +1,8 @@
-from symbol_table.type_info import TypeInfo, TypeEnum
+from typing import Optional
+
 from symbol_table.method_info import MethodInfo
 from symbol_table.table import Table
+from symbol_table.type_info import TypeInfo, TypeEnum
 from syntax_tree import *
 
 IntType = TypeInfo(TypeEnum.Int, None)
@@ -9,7 +11,7 @@ IntArrayType = TypeInfo(TypeEnum.IntArray, None)
 
 
 class TypeScopeSwitcher:
-    def __init__(self, type_info: TypeInfo, class_name: str, table: Table, position: Position):
+    def __init__(self, type_info: Optional[TypeInfo], class_name: Optional[str], table: Table, position: Position):
         self.table = table
         if type_info is not None:
             self.type_info = type_info
@@ -25,7 +27,7 @@ class TypeScopeSwitcher:
 
 
 class MethodScopeSwitcher:
-    def __init__(self, method_info: MethodInfo, method_name: str, table: Table, position: Position):
+    def __init__(self, method_info: Optional[MethodInfo], method_name: Optional[str], table: Table, position: Position):
         self.table = table
         if method_info is not None:
             self.table.add_method_to_scope(method_info.name, position)

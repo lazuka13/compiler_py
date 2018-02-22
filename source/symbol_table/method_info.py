@@ -1,5 +1,6 @@
 from enum import Enum
 
+from activation_records.i_frame import IFrame
 from syntax_tree import Position
 from .identifier import Identifier
 from .type_info import TypeInfo
@@ -40,6 +41,8 @@ class MethodInfo(Identifier):
 
         self.vars_names = []
         self.args_names = []
+
+        self.frame : IFrame = None
 
         self.variables_block = dict()  # храним переменные метода в словаре с доступом по названию
 
@@ -90,3 +93,9 @@ class MethodInfo(Identifier):
 
     def get_full_name(self):
         return self.class_name
+
+    def add_frame_info(self, frame: IFrame):
+        self.frame = frame
+
+    def get_frame(self):
+        return self.frame

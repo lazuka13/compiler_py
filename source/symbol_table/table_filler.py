@@ -1,3 +1,4 @@
+from activation_records.frame_filler import FrameFiller
 from syntax_tree import Visitor, Program, Visitable, \
     MainClass, ClassDecl, Position
 from .class_info import ClassInfo
@@ -111,6 +112,7 @@ class TableFiller(Visitor):
         :param class_decl: узел AST класса ClassDecl
         :return:
         """
+        frame_filler = FrameFiller(self.table)
         class_info = ClassInfo(class_decl.id.name, class_decl.position)
         if class_decl.extends is not None:
             class_info.add_super_class(class_decl.extends.name)
@@ -144,7 +146,9 @@ class TableFiller(Visitor):
                     var_decl.position,
                     TypeInfo.from_type(var_decl.type_of)
                 ))
+            method_info.add_frame_info(frame_filler.create_frame(class_info, method_info))
             class_info.add_method_info(method_info)
+            self.table.add_frame(method_info.get_full_name(), method_info.get_frame())
         self.table.add_class(class_info)
 
     def _print_class_info(self, class_info: ClassInfo):

@@ -10,11 +10,13 @@ class Label:
     @staticmethod
     def get_label(name):
         found = Label.Map.get(name)
-        if found is not None:
+        if found is None:
             label = Label(name)
             Label.Map[name] = label
+            print('uuu label', type(label))
             return label
         else:
+            print('uuu found', type(found))
             return found
 
     @staticmethod
@@ -24,4 +26,5 @@ class Label:
             id += 1
         label_name = LABEL_PREFIX + str(id)
         id += 1
-        return label_name
+        print('uuu label_name', type(label_name))
+        return Label.get_label(label_name)
