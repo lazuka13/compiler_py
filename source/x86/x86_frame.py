@@ -1,4 +1,4 @@
-from activation_records.i_access import Access, RecordsType
+from activation_records.i_access import IAccess, RecordsType
 from activation_records.i_frame import IFrame
 from activation_records.in_frame_access import InFrameAccess
 from activation_records.in_reg_access import InRegAccess
@@ -13,6 +13,9 @@ RETURN_ADDRESS_NAME = "@RETURN_ADDRESS@"
 
 
 class X86MiniJavaFrame(IFrame):
+    """
+    Реализация фрейма под конкретную архитектуру x86
+    """
 
     def __init__(self):
         IFrame.__init__(self)
@@ -31,24 +34,24 @@ class X86MiniJavaFrame(IFrame):
         return self.type_spec.type_size(type_enum)
 
     def add_formal(self, var_info: VariableInfo):
-        var: Access = self._create_formal(RecordsType.RT_Formal, self.type_size(var_info.type_of.type_enum))
+        var: IAccess = self._create_formal(RecordsType.RT_Formal, self.type_size(var_info.type_of.type_enum))
         self.formal_access[var_info.name] = var
         self.formal_list.append(var)
 
     def add_local(self, var_info: VariableInfo):
-        var: Access = InFrameAccess(RecordsType.RT_Formal, self.type_size(var_info.type_of.type_enum),
-                                    self.local_top_pointer)
+        var: IAccess = InFrameAccess(RecordsType.RT_Formal, self.type_size(var_info.type_of.type_enum),
+                                     self.local_top_pointer)
         self.local_access[var_info.name] = var
         self.local_top_pointer += self.type_size(var_info.type_of.type_enum)
 
     def add_address_exit(self):
-        var: Access = self._create_formal(RecordsType.RT_AddressExit, self.type_spec.reference_size())
+        var: IAccess = self._create_formal(RecordsType.RT_AddressExit, self.type_spec.reference_size())
         self.formal_access[EXIT_ADDRESS_NAME] = var
         self.address_exit_index = len(self.formal_list)
         self.formal_list.append(var)
 
     def add_address_return_value(self, type_of: TypeInfo):
-        var: Access = self._create_formal(RecordsType.RT_AddressReturnValue, self.type_spec.reference_size())
+        var: IAccess = self._create_formal(RecordsType.RT_AddressReturnValue, self.type_spec.reference_size())
         self.formal_access[RETURN_ADDRESS_NAME] = var
         self.address_return_value_index = len(self.formal_list)
         self.formal_list.append(var)
@@ -81,7 +84,7 @@ class X86MiniJavaFrame(IFrame):
         return res
 
     def word_type(self):
-        return TypeInfo(TypeEnum.Int, None)
+        return TypeInfo(TypeEnum.INT, None)
 
     def FP(self):
         return TempAddress(self.formal_top_pointer)
@@ -93,6 +96,6 @@ class X86MiniJavaFrame(IFrame):
         if len(self.formal_list) < MAX_IN_REG:
             return InRegAccess(records_type, size, len(self.formal_list))
         else:
-            access: Access = InFrameAccess(records_type, size, self.formal_top_pointer)
+            access: IAccess = InFrameAccess(records_type, size, self.formal_top_pointer)
             self.formal_top_pointer += size
             return access

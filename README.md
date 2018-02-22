@@ -8,9 +8,10 @@
 - [x] symbol table
 - [x] type checker
 - [x] activation records
+- [x] ir tree
 
 TODO:
-- [ ] ir tree (в процессе)
+
 - [ ] тесты (в процессе)
 - [ ] результаты (в процессе)
 - [ ] документация

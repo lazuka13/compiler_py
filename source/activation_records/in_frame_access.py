@@ -4,13 +4,13 @@ from ir_tree.expressions.i_exp import IExp
 from ir_tree.expressions.mem import Mem
 from ir_tree.expressions.temp import Temp
 from syntax_tree import Position
-from .i_access import Access, RecordsType
+from .i_access import IAccess, RecordsType
 from .temp_address import TempAddress
 
 
-class InFrameAccess(Access):
+class InFrameAccess(IAccess):
     def __init__(self, record_type: RecordsType, size: int, offset: int):
-        Access.__init__(self)
+        IAccess.__init__(self)
         self.record_type = record_type
         self.size = size
         self.address = TempAddress(offset)

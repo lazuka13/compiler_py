@@ -28,7 +28,7 @@ class ClassInfo(Identifier):
         self.methods_block = dict()
 
         self.class_struct: IClassStruct = X86MiniJavaClassStruct()
-        self.type_info: TypeInfo = TypeInfo(TypeEnum.UserClass, name)
+        self.type_info: TypeInfo = TypeInfo(TypeEnum.USER_CLASS, name)
 
     def add_method_info(self, method: MethodInfo):
         """

@@ -1,4 +1,4 @@
-from activation_records.i_access import Access
+from activation_records.i_access import IAccess
 from activation_records.i_frame import IFrame
 from ir_tree import array_struct
 from ir_tree.label import Label
@@ -301,7 +301,7 @@ class IRBuilder(Visitor):
         self.type_stack_visitor.visit(obj)
 
     def visit_id(self, obj: Id):
-        var_access: Access = self.current_frame.find_local_or_formal(obj.name)
+        var_access: IAccess = self.current_frame.find_local_or_formal(obj.name)
         if var_access is not None:
             var_exp = var_access.get_exp(
                 Temp(
@@ -370,7 +370,7 @@ class IRBuilder(Visitor):
         )
         info: TypeInfo = self.type_stack_visitor.get_type_from_stack()
         assert info is not None
-        assert info.type_enum == TypeEnum.UserClass
+        assert info.type_enum == TypeEnum.USER_CLASS
         type_switcher = TypeScopeSwitcher(info, None, self.table, obj.position)
         arguments = ExpList(base_exp, None, obj.position)
         for expr in obj.expr_list:
@@ -401,7 +401,7 @@ class IRBuilder(Visitor):
                 BinopEnum.MUL,
                 number_of_elements,
                 Const(
-                    self.current_frame.type_size(TypeEnum.Int),
+                    self.current_frame.type_size(TypeEnum.INT),
                     obj.position
                 ),
                 obj.position

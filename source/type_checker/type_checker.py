@@ -7,9 +7,9 @@ from symbol_table.type_stack_visitor import TypeScopeSwitcher, TypeStackVisitor,
 from syntax_tree import *
 
 # создадим несколько сокращений для проверки типов #
-IntType = TypeInfo(TypeEnum.Int, None)
-BooleanType = TypeInfo(TypeEnum.Boolean, None)
-IntArrayType = TypeInfo(TypeEnum.IntArray, None)
+IntType = TypeInfo(TypeEnum.INT, None)
+BooleanType = TypeInfo(TypeEnum.BOOLEAN, None)
+IntArrayType = TypeInfo(TypeEnum.INT_ARRAY, None)
 
 
 class TypeChecker(Visitor):
@@ -25,6 +25,9 @@ class TypeChecker(Visitor):
     1) в обходе if (3 < 5) как IfStatement вызывается обход 3 < 5 как BinaryExpr
     2) в обходе 3 < 5 в стек кладется BooleanType, обход завершается
     3) в продолжении обхода if (3 < 5) из стека извлекается тип - проверяем, Boolean ли он
+
+    Тут используется TypeStackVisitor, именно в нем хранится стек типов, он нужен для сокращения
+    кода (потом используется в IR_Tree)
     """
 
     def __init__(self, table):
@@ -116,11 +119,11 @@ class TypeChecker(Visitor):
         switcher.destroy()
 
     def visit_var_decl(self, var_decl: VarDecl):
-        if TypeInfo.from_type(var_decl.type_of).type_enum == TypeEnum.UserClass:
+        if TypeInfo.from_type(var_decl.type_of).type_enum == TypeEnum.USER_CLASS:
             self.table.get_class(var_decl.type_of.label, var_decl.position)
 
     def visit_arg_decl(self, arg_decl: ArgDecl):
-        if TypeInfo.from_type(arg_decl.type_of).type_enum == TypeEnum.UserClass:
+        if TypeInfo.from_type(arg_decl.type_of).type_enum == TypeEnum.USER_CLASS:
             self.table.get_class(arg_decl.type_of.label, arg_decl.position)
 
     def visit_method_decl(self, method_decl: MethodDecl):
@@ -140,17 +143,17 @@ class TypeChecker(Visitor):
 
     def visit_random_access_assign_statement(self, raa_statement: RandomAccessAssignStatement):
         var_info: VariableInfo = self.table.get_variable(raa_statement.id.name, raa_statement.position)
-        if var_info.type_of.type_enum != TypeEnum.IntArray:
+        if var_info.type_of.type_enum != TypeEnum.INT_ARRAY:
             raise SyntaxError(f'Trying to subscript {var_info.type_of.get_type_string()} as array! '
                               f'Position {raa_statement.position}')  # TODO Переписать на другой ошибке!
         raa_statement.position_in_arr.accept(self)
         returned: TypeInfo = self.type_stack_visitor.pop_type_from_stack()
-        if returned.type_enum != TypeEnum.Int:
+        if returned.type_enum != TypeEnum.INT:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as index of array! '
                               f'Position {raa_statement.position}')
         raa_statement.expr.accept(self)
         returned: TypeInfo = self.type_stack_visitor.pop_type_from_stack()
-        if returned.type_enum != TypeEnum.Int:
+        if returned.type_enum != TypeEnum.INT:
             raise SyntaxError(f'Trying to assign type {returned.get_type_string()} to element of int array! '
                               f'Position {raa_statement.position}')
 
@@ -165,14 +168,14 @@ class TypeChecker(Visitor):
     def visit_print_line_statement(self, print_line_statement: PrintLineStatement):
         print_line_statement.obj.accept(self)
         returned: TypeInfo = self.type_stack_visitor.pop_type_from_stack()
-        if returned.type_enum == TypeEnum.UserClass:
+        if returned.type_enum == TypeEnum.USER_CLASS:
             raise SyntaxError(f'Trying to return user type {returned.get_type_string()}! '
                               f'Position {print_line_statement.position}')
 
     def visit_while_statement(self, while_statement: WhileStatement):
         while_statement.condition.accept(self)
         returned = self.type_stack_visitor.pop_type_from_stack()
-        if returned.type_enum != TypeEnum.Boolean:
+        if returned.type_enum != TypeEnum.BOOLEAN:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as condition! '
                               f'Position {while_statement.position}')
 
@@ -183,7 +186,7 @@ class TypeChecker(Visitor):
     def visit_if_statement(self, if_statement: IfStatement):
         if_statement.condition.accept(self)
         returned = self.type_stack_visitor.pop_type_from_stack()
-        if returned.type_enum != TypeEnum.Boolean:
+        if returned.type_enum != TypeEnum.BOOLEAN:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as condition! '
                               f'Position {if_statement.position}')
         if_statement.if_false.accept(self)
@@ -194,21 +197,21 @@ class TypeChecker(Visitor):
         returned = self.type_stack_visitor.pop_type_from_stack()
         if binary_expr.binary_enum in [BinaryEnum.PLUS, BinaryEnum.MULT, BinaryEnum.MINUS, BinaryEnum.MOD,
                                        BinaryEnum.LESS]:
-            if returned.type_enum != TypeEnum.Int:
+            if returned.type_enum != TypeEnum.INT:
                 raise SyntaxError(f'Trying to apply math operation to type {returned.get_type_string()}! '
                                   f'Position {binary_expr.position}')
             binary_expr.right.accept(self)
             returned = self.type_stack_visitor.pop_type_from_stack()
-            if returned.type_enum != TypeEnum.Int:
+            if returned.type_enum != TypeEnum.INT:
                 raise SyntaxError(f'Trying to apply math operation to type {returned.get_type_string()}! '
                                   f'Position {binary_expr.position}')
         elif binary_expr.binary_enum in [BinaryEnum.OR, BinaryEnum.AND]:
-            if returned.type_enum != TypeEnum.Boolean:
+            if returned.type_enum != TypeEnum.BOOLEAN:
                 raise SyntaxError(f'Trying to apply logical operation to type {returned.get_type_string()}! '
                                   f'Position {binary_expr.position}')
             binary_expr.right.accept(self)
             returned = self.type_stack_visitor.pop_type_from_stack()
-            if returned.type_enum != TypeEnum.Boolean:
+            if returned.type_enum != TypeEnum.BOOLEAN:
                 raise SyntaxError(f'Trying to apply logical operation to type {returned.get_type_string()}! '
                                   f'Position {binary_expr.position}')
         self.type_stack_visitor.visit(binary_expr)
@@ -216,12 +219,12 @@ class TypeChecker(Visitor):
     def visit_random_access_expr(self, ra_expr: RandomAccessExpr):
         ra_expr.object.accept(self)
         returned = self.type_stack_visitor.pop_type_from_stack()
-        if returned.type_enum != TypeEnum.IntArray:
+        if returned.type_enum != TypeEnum.INT_ARRAY:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as int array! '
                               f'Position {ra_expr.position}')
         ra_expr.position_in_arr.accept(self)
         returned = self.type_stack_visitor.pop_type_from_stack()
-        if returned.type_enum != TypeEnum.Int:
+        if returned.type_enum != TypeEnum.INT:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as index of int array! '
                               f'Position {ra_expr.position}')
         self.type_stack_visitor.visit(ra_expr)
@@ -229,7 +232,7 @@ class TypeChecker(Visitor):
     def visit_length_expr(self, length_expr: LengthExpr):
         length_expr.obj.accept(self)
         returned = self.type_stack_visitor.pop_type_from_stack()
-        if returned.type_enum != TypeEnum.IntArray:
+        if returned.type_enum != TypeEnum.INT_ARRAY:
             raise SyntaxError(f'Trying to use type {returned.get_type_string()} as int array! '
                               f'Position {length_expr.position}')
         self.type_stack_visitor.visit(length_expr)
@@ -237,7 +240,7 @@ class TypeChecker(Visitor):
     def visit_call_method_expr(self, call_method_expr: CallMethodExpr):
         call_method_expr.expr.accept(self)
         returned_base: TypeInfo = self.type_stack_visitor.get_type_from_stack()
-        if returned_base.type_enum != TypeEnum.UserClass:
+        if returned_base.type_enum != TypeEnum.USER_CLASS:
             raise SyntaxError(f'Trying to use type {returned_base.get_type_string()} as user type! '
                               f'Position {call_method_expr.position}')
 
@@ -261,7 +264,7 @@ class TypeChecker(Visitor):
         for arg in reversed(method_info.args_block):
             passed: TypeInfo = self.type_stack_visitor.pop_type_from_stack()
             if passed != arg.type_of:
-                if passed.type_enum == TypeEnum.UserClass and \
+                if passed.type_enum == TypeEnum.USER_CLASS and \
                         self.table.does_type_have_super(
                             self.table.get_class(passed.user_class_name, call_method_expr.position),
                             arg.type_of.user_class_name, call_method_expr.position):

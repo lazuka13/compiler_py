@@ -14,6 +14,10 @@ from .x86_type_spec import X86MiniJavaTypeSpec
 
 
 class X86MiniJavaClassStruct(IClassStruct):
+    """
+    Отвечает за хранение структуры класса (нужна виртуальная таблица, так
+    как есть виртуальные вызовы). Явлется членом класса X86MiniJavaFrame.
+    """
     def __init__(self):
         IClassStruct.__init__(self)
         self.vtable_entries: List[MethodInfo] = []

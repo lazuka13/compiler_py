@@ -5,28 +5,38 @@ from symbol_table.table import Table
 from symbol_table.type_info import TypeInfo, TypeEnum
 from syntax_tree import *
 
-IntType = TypeInfo(TypeEnum.Int, None)
-BooleanType = TypeInfo(TypeEnum.Boolean, None)
-IntArrayType = TypeInfo(TypeEnum.IntArray, None)
+IntType = TypeInfo(TypeEnum.INT, None)
+BooleanType = TypeInfo(TypeEnum.BOOLEAN, None)
+IntArrayType = TypeInfo(TypeEnum.INT_ARRAY, None)
 
 
 class TypeScopeSwitcher:
+    """
+    Отвечает за переключение Scope-а таблицы на другой класс
+    При удалении (метод destroy) очищает за собой последний Scope
+    """
+
     def __init__(self, type_info: Optional[TypeInfo], class_name: Optional[str], table: Table, position: Position):
         self.table = table
         if type_info is not None:
             self.type_info = type_info
-            if type_info.type_enum == TypeEnum.UserClass:
+            if type_info.type_enum == TypeEnum.USER_CLASS:
                 self.table.add_class_to_scope(type_info.user_class_name, position)
         else:
             self.type_info = self.table.get_class(class_name).type_info
             self.table.add_class_to_scope(class_name, position)
 
     def destroy(self):
-        if self.type_info.type_enum == TypeEnum.UserClass:
+        if self.type_info.type_enum == TypeEnum.USER_CLASS:
             self.table.free_last_scope()
 
 
 class MethodScopeSwitcher:
+    """
+    Отвечает за переключение Scope-а таблицы на другой метод
+    При удалении (метод destroy) очищает за собой последний Scope
+    """
+
     def __init__(self, method_info: Optional[MethodInfo], method_name: Optional[str], table: Table, position: Position):
         self.table = table
         if method_info is not None:
@@ -39,6 +49,10 @@ class MethodScopeSwitcher:
 
 
 class TypeStackVisitor(Visitor):
+    """
+    Отвечает за проверку типов, используется в TypeChecker-е и IRBuilder-е (TODO Зачем?)
+    """
+
     def __init__(self, table: Table):
         Visitor.__init__(self)
         self.table = table
@@ -87,7 +101,7 @@ class TypeStackVisitor(Visitor):
         else:
             self.types_stack.append(BooleanType)
 
-    def visit_not_expr(self, obj: NotExpr):
+    def visit_not_expr(self, _: NotExpr):
         self.types_stack.append(BooleanType)
 
     def visit_call_method_expr(self, obj: CallMethodExpr):
@@ -97,29 +111,29 @@ class TypeStackVisitor(Visitor):
         self.types_stack.append(method_info.return_type)
         switcher.destroy()
 
-    def visit_new_int_array_expr(self, obj: NewIntArrExpr):
+    def visit_new_int_array_expr(self, _: NewIntArrExpr):
         self.types_stack.append(IntArrayType)
 
     def visit_new_object_expr(self, obj: NewObjectExpr):
         object_type = self.table.get_class(obj.id.name, obj.position).type_info
         self.types_stack.append(object_type)
 
-    def visit_length_expr(self, obj: LengthExpr):
+    def visit_length_expr(self, _: LengthExpr):
         self.types_stack.append(IntType)
 
-    def visit_random_access_expr(self, obj: RandomAccessExpr):
+    def visit_random_access_expr(self, _: RandomAccessExpr):
         self.types_stack.append(IntType)
 
-    def visit_this_expr(self, obj: ThisExpr):
+    def visit_this_expr(self, _: ThisExpr):
         scoped_class = self.table.get_scoped_class()
         self.types_stack.append(scoped_class.type_info)
 
-    def get_type_from_stack(self):
+    def get_type_from_stack(self) -> Optional[TypeInfo]:
         if len(self.types_stack) > 0:
             return self.types_stack[-1]
         return None
 
-    def pop_type_from_stack(self):
+    def pop_type_from_stack(self) -> Optional[TypeInfo]:
         if len(self.types_stack) > 0:
             return self._pop_types_stack()
         return None

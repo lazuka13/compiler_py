@@ -1,13 +1,13 @@
 from ir_tree.expressions.i_exp import IExp
 from ir_tree.expressions.temp import Temp
 from syntax_tree import Position
-from .i_access import Access
+from .i_access import IAccess
 from .temp_address import TempAddress
 
 
-class InRegAccess(Access):
+class InRegAccess(IAccess):
     def __init__(self, record_type, size, name=None, id=None):
-        Access.__init__(self)
+        IAccess.__init__(self)
         self.record_type = record_type
         self.size = size
         if id is not None:

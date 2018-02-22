@@ -75,7 +75,7 @@ def run_st_tests():
 
         table = Table()
         filler = TableFiller(table)
-        filler.fill_table(program, print_table=True)
+        filler.fill_table(program, verbose=True)
         print()
 
     if not os.path.exists('../tests/st/bad'):
@@ -89,7 +89,7 @@ def run_st_tests():
 
             table = Table()
             filler = TableFiller(table)
-            filler.fill_table(program, print_table=True)
+            filler.fill_table(program, verbose=True)
         except SyntaxError as error:
             print(error)
         print()
@@ -117,7 +117,7 @@ def run_tc_tests():
 
         table = Table()
         filler = TableFiller(table)
-        filler.fill_table(program, print_table=False)
+        filler.fill_table(program, verbose=False)
 
         type_checker = TypeChecker(table)
         type_checker.check_ast_st(program)
@@ -134,7 +134,7 @@ def run_tc_tests():
 
             table = Table()
             filler = TableFiller(table)
-            filler.fill_table(program, print_table=False)
+            filler.fill_table(program, verbose=False)
 
             type_checker = TypeChecker(table)
             type_checker.check_ast_st(program)
@@ -165,7 +165,7 @@ def run_ar_tests():
 
         table = Table()
         filler = TableFiller(table)
-        filler.fill_table(program, print_table=False)
+        filler.fill_table(program, verbose=False)
 
         frame_filler = FrameFiller(table)
         frame_filler.fill()

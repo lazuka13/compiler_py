@@ -14,28 +14,29 @@ class TableFiller(Visitor):
     при обходе абстрактного синтаксического дерева
     """
 
-    def __init__(self, table: Table):
+    def __init__(self, table: Table, verbose: bool = False):
         """
         Конструктор (передаем заполняемую таблицу)
         :param table: символьная таблица для заполнения
+        :param verbose: отвечает за вывод таблицы на экран
         """
         Visitor.__init__(self)
         self.table = table
+        self.verbose = verbose
 
-    def fill_table(self, program: Program, print_table: bool = True):
+    def fill_table(self, program: Program):
         """
         Отвечает за обход AST и заполнение таблицы
         :param program: корень AST (class Program)
-        :param print_table: отвечает за вывод таблицы на экран
         :return:
         """
         program.accept(self)
-        if print_table:
+        if self.verbose:
             for class_name in self.table.classes_names:
                 try:
                     class_info = self.table.get_class(class_name, Position(0, 0))
                     self.table.add_class_to_scope(class_name, Position(0, 0))
-                    if print_table:
+                    if self.verbose:
                         self._print_class_info(class_info)
                     self.table.free_last_scope()
                     print()
@@ -96,12 +97,12 @@ class TableFiller(Visitor):
         method_info = MethodInfo('main',
                                  main_class.id.name,
                                  main_class.position,
-                                 TypeInfo(TypeEnum.UserClass, 'void'),
+                                 TypeInfo(TypeEnum.USER_CLASS, 'void'),
                                  AccessModifierEnum.Public)
         method_info.add_arg_info(VariableInfo(
             main_class.param_id.name,
             main_class.position,
-            TypeInfo(TypeEnum.UserClass, 'String []')
+            TypeInfo(TypeEnum.USER_CLASS, 'String []')
         ))
         class_info.add_method_info(method_info)
         self.table.add_class(class_info)
@@ -196,12 +197,12 @@ class TableFiller(Visitor):
         :param variable_info: информация об отображаемой переменной
         :return:
         """
-        if variable_info.type_of.type_enum == TypeEnum.Boolean:
+        if variable_info.type_of.type_enum == TypeEnum.BOOLEAN:
             type_of = 'bool'
-        if variable_info.type_of.type_enum == TypeEnum.Int:
+        if variable_info.type_of.type_enum == TypeEnum.INT:
             type_of = 'int'
-        if variable_info.type_of.type_enum == TypeEnum.IntArray:
+        if variable_info.type_of.type_enum == TypeEnum.INT_ARRAY:
             type_of = 'int []'
-        if variable_info.type_of.type_enum == TypeEnum.UserClass:
+        if variable_info.type_of.type_enum == TypeEnum.USER_CLASS:
             type_of = variable_info.type_of.user_class_name
         return f'{type_of} {variable_info.name} {variable_info.position}'

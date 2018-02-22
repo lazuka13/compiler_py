@@ -5,7 +5,8 @@ from .class_info import ClassInfo
 
 class ScopeBlock:
     """
-
+    Отвечает за хранение информации о текущем Scope - нужен для
+    разрешения имен переменных, методов и т.д.
     """
 
     def __init__(self,

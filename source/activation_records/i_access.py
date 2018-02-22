@@ -14,7 +14,11 @@ class RecordsType(Enum):
     RT_AddressReturnValue = 6
 
 
-class Access:
+class IAccess:
+    """
+    # TODO
+    """
+
     def __init__(self):
         pass
 

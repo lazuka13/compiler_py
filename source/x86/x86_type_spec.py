@@ -7,17 +7,20 @@ REFERENCE_SIZE = WORD_SIZE * 1
 
 
 class X86MiniJavaTypeSpec(ITypeSpec):
+    """
+    Отвечает за размеры записей для данных разных типов
+    """
     def __init__(self):
         ITypeSpec.__init__(self)
 
     def type_size(self, type_enum: TypeEnum):
-        if type_enum == TypeEnum.UserClass:
+        if type_enum == TypeEnum.USER_CLASS:
             return REFERENCE_SIZE
-        elif type_enum == TypeEnum.Int:
+        elif type_enum == TypeEnum.INT:
             return INT_SIZE
-        elif type_enum == TypeEnum.IntArray:
+        elif type_enum == TypeEnum.INT_ARRAY:
             return REFERENCE_SIZE
-        elif type_enum == TypeEnum.Boolean:
+        elif type_enum == TypeEnum.BOOLEAN:
             return BOOLEAN_SIZE
 
     def reference_size(self):
