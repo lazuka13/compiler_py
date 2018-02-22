@@ -41,7 +41,7 @@ class Fac {
 
 
 **Abstract Syntax Tree**
-<img src="./docs/images/Factorial.png"/>  
+<img src="./docs/images/ast_tree.svg"/>  
 
 **Symbol Table**
 ```
@@ -82,3 +82,6 @@ Return address: Register 3
 Exit address: Register 2
 - - - - - - - - - - - - -
 ```
+
+**Intermediate Representation Tree**
+<img src="./docs/images/ir_tree.svg"/>  
