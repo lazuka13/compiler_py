@@ -73,6 +73,8 @@ class IRBuilder(Visitor):
             self.visit_random_access_expr(obj)
         elif isinstance(obj, ThisExpr):
             self.visit_this_expr(obj)
+        elif isinstance(obj, ReturnStatement):
+            self.visit_return_statement(obj)
 
     def visit_program(self, obj: Program):
         obj.main.accept(self)
@@ -109,7 +111,7 @@ class IRBuilder(Visitor):
         for statement in obj.statement_list:
             statement.accept(self)
             stm = StmList(self.main_subtree.to_stm(), None, obj.position)
-        obj.result.accept(self)
+        obj.return_statement.accept(self)
         stm = StmList(self.main_subtree.to_stm(), stm, obj.position)
         name = method_info.get_full_name()
         self.trees[name] = StmWrapper(stm)
@@ -126,8 +128,8 @@ class IRBuilder(Visitor):
             result = Binop(BinopEnum.MINUS, left, right, obj.position)
         elif obj.binary_enum == BinaryEnum.MULT:
             result = Binop(BinopEnum.MUL, left, right, obj.position)
-        elif obj.binary_enum == BinaryEnum.MINUS:
-            result = Binop(BinopEnum.MINUS, left, right, obj.position)
+        elif obj.binary_enum == BinaryEnum.PLUS:
+            result = Binop(BinopEnum.PLUS, left, right, obj.position)
         elif obj.binary_enum == BinaryEnum.MOD:
             result = Binop(BinopEnum.MOD, left, right, obj.position)
         elif obj.binary_enum == BinaryEnum.LESS:
@@ -296,7 +298,7 @@ class IRBuilder(Visitor):
                 obj.position
             )
         else:
-            raise Exception('NO RESULT')  # TODO
+            raise Exception('Hello there! - General Kenobi!')  # TODO
         self.main_subtree = ExpWrapper(result)
         self.type_stack_visitor.visit(obj)
 
@@ -576,3 +578,12 @@ class IRBuilder(Visitor):
             )
         )
         self.type_stack_visitor.visit(obj)
+
+    def visit_return_statement(self, obj: ReturnStatement):
+        obj.expression.accept(self)
+        self.type_stack_visitor.pop_type_from_stack()
+        return_address = self.current_frame.return_address.get_exp(
+            Temp(fp_name, None, None, obj.position),
+            obj.position
+        )
+        self.main_subtree = StmWrapper(Move(return_address, self.main_subtree.to_exp(), obj.position))

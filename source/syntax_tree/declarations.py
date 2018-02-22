@@ -1,7 +1,7 @@
 from .base import Visitable, Position
 from .expressions import Expr
 from .expressions import Id
-from .statements import StatementList
+from .statements import StatementList, ReturnStatement
 from .types import Type
 
 """
@@ -69,7 +69,7 @@ class MethodDecl(Visitable):
     """
 
     def __init__(self, access_modifier: str, type_of: Type, id: str, args: ArgDeclList, vars: VarDeclList,
-                 statements: StatementList, result: Expr, position: Position):
+                 statements: StatementList, return_statement: ReturnStatement, position: Position):
         Visitable.__init__(self, position)
         self.access_modifier = access_modifier
         self.type_of = type_of
@@ -77,7 +77,7 @@ class MethodDecl(Visitable):
         self.arg_decl_list = args.arg_decl_list if args is not None else []
         self.var_decl_list = vars.var_decl_list if vars is not None else []
         self.statement_list = statements.statement_list if statements is not None else []
-        self.result = result
+        self.return_statement = return_statement
 
 
 class MethodDeclList:

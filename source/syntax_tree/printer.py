@@ -75,6 +75,8 @@ class Printer(Visitor):
             self.visit_var_decl(obj)
         elif isinstance(obj, ThisExpr):
             self.visit_this_expr(obj)
+        elif isinstance(obj, ReturnStatement):
+            self.visit_return_statement(obj)
 
     def visit_program(self, obj: Program):
         self.print_vertex(obj, f"Program | {obj.position}")
@@ -128,11 +130,11 @@ class Printer(Visitor):
             for arg in obj.arg_decl_list:
                 arg.accept(self)
                 self.print_edge(obj, arg, 'argument')
-        obj.result.accept(self)
-        self.print_edge(obj, obj.result, 'returns')
+        obj.return_statement.accept(self)
+        self.print_edge(obj, obj.return_statement, 'returns')
 
     def visit_binary_expr(self, obj: BinaryExpr):
-        self.print_vertex(obj, f'Binary | {obj.label} | {obj.position}')
+        self.print_vertex(obj, f'Binary | {self.format_binary(obj)} | {obj.position}')
         obj.left.accept(self)
         obj.right.accept(self)
         self.print_edge(obj, obj.right, 'right')
@@ -232,3 +234,25 @@ class Printer(Visitor):
 
     def visit_this_expr(self, obj: ThisExpr):
         self.print_vertex(obj, f'This | {obj.position}')
+
+    def visit_return_statement(self, obj: ReturnStatement):
+        self.print_vertex(obj, f'Return | {obj.position}')
+        obj.expression.accept(self)
+        self.print_edge(obj, obj.expression)
+
+    def format_binary(self, obj:BinaryExpr):
+        if obj.binary_enum == BinaryEnum.AND:
+            return '&&'
+        if obj.binary_enum == BinaryEnum.OR:
+            return '||'
+        if obj.binary_enum == BinaryEnum.MINUS:
+            return '-'
+        if obj.binary_enum == BinaryEnum.PLUS:
+            return '+'
+        if obj.binary_enum == BinaryEnum.MOD:
+            return '%'
+        if obj.binary_enum == BinaryEnum.LESS:
+            return '\\<'
+        if obj.binary_enum == BinaryEnum.MULT:
+            return '*'
+

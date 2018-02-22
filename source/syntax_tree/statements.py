@@ -55,3 +55,9 @@ class WhileStatement(Statement):
         Statement.__init__(self, position)
         self.condition = condition
         self.action = action
+
+
+class ReturnStatement(Statement):
+    def __init__(self, expression, position):
+        Statement.__init__(self, position)
+        self.expression = expression

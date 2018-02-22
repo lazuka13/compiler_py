@@ -30,12 +30,13 @@ class TypeChecker(Visitor):
     кода (потом используется в IR_Tree)
     """
 
-    def __init__(self, table):
+    def __init__(self, table, verbose=False):
         """
         Конструктор
         """
         Visitor.__init__(self)
         self.table = table
+        self.verbose = verbose
         self.type_stack_visitor = TypeStackVisitor(self.table)
 
     def check_ast_st(self, program: Program):
@@ -50,7 +51,8 @@ class TypeChecker(Visitor):
         except SyntaxError as error:
             print(error)
         else:
-            print('Проверка типов пройдена успешно!')
+            if self.verbose:
+                print('Проверка типов пройдена успешно!')
 
     def visit(self, visitable: Visitable):
         """
@@ -102,6 +104,8 @@ class TypeChecker(Visitor):
             self.visit_new_int_arr_expr(visitable)
         elif isinstance(visitable, NotExpr):
             self.visit_not_expr(visitable)
+        elif isinstance(visitable, ReturnStatement):
+            self.visit_return_statement(visitable)
 
     def visit_program(self, program: Program):
         program.main.accept(self)
@@ -134,7 +138,7 @@ class TypeChecker(Visitor):
             var_decl.accept(self)
         for statement in method_decl.statement_list:
             statement.accept(self)
-        method_decl.result.accept(self)
+        method_decl.return_statement.accept(self)
         returned = self.type_stack_visitor.pop_type_from_stack()
         if returned != TypeInfo.from_type(method_decl.type_of):
             raise SyntaxError(f'Trying to return type {returned.get_type_string()} from method '
@@ -301,3 +305,6 @@ class TypeChecker(Visitor):
             raise SyntaxError(f'Trying to use type {returned.get_type_string} as boolean expression! '
                               f'Position {not_expr.position}')
         self.type_stack_visitor.visit(not_expr)
+
+    def visit_return_statement(self, obj: ReturnStatement):
+        obj.expression.accept(self)

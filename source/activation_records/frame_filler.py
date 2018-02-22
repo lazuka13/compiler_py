@@ -44,7 +44,6 @@ class FrameFiller:
                 for var_info in method_info.vars_block:
                     frame.add_local(var_info)
                 frame.add_address_exit()
-                frame.add_address_return_value(method_info.return_type)
                 self.print(f'Method name: {method_info.name}')
                 activation = frame.find_local_or_formal(THIS_NAME)
                 self.print(f'this: {activation.print(frame.FP())}')
@@ -56,7 +55,7 @@ class FrameFiller:
                     activation = frame.find_local_or_formal(var_name)
                     self.print(f'{var_name}: {activation.print(frame.FP())}')
                 self.print(f'SP: {frame.SP().get_address()}')
-                self.print(f'Return address: {frame.return_address().print(TempAddress(0))}')
+                self.print(f'Return address: {frame.return_address.print(TempAddress(0))}')
                 self.print(f'Exit address: {frame.exit_address().print(TempAddress(0))}')
                 self.print('- - - - - - - - - - - - -')
                 self.print('')

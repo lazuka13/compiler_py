@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # проверка тайпчекером
     print('### Проверка типов тайпчекером ###')
-    type_checker = TypeChecker(table)
+    type_checker = TypeChecker(table, verbose=True)
     type_checker.check_ast_st(program)
     print()
 

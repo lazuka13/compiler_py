@@ -136,20 +136,26 @@ def p_method_s(p):
 
 def p_method(p):
     """
-    method : modifier type id L_ROUND arg_s R_ROUND L_BRACKET var_s statement_s RETURN exp SEMICOLON R_BRACKET
-           | modifier type id L_ROUND arg_s R_ROUND L_BRACKET var_s RETURN exp SEMICOLON R_BRACKET
-           | modifier type id L_ROUND arg_s R_ROUND L_BRACKET statement_s RETURN exp SEMICOLON R_BRACKET
-           | modifier type id L_ROUND arg_s R_ROUND L_BRACKET RETURN exp SEMICOLON R_BRACKET
+    method : modifier type id L_ROUND arg_s R_ROUND L_BRACKET var_s statement_s stm_ret R_BRACKET
+           | modifier type id L_ROUND arg_s R_ROUND L_BRACKET var_s stm_ret R_BRACKET
+           | modifier type id L_ROUND arg_s R_ROUND L_BRACKET statement_s stm_ret R_BRACKET
+           | modifier type id L_ROUND arg_s R_ROUND L_BRACKET stm_ret R_BRACKET
     """
-    if isinstance(p[8], str):
-        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], None, None, p[9], ast.Position(*get_pos(p)))
-    elif len(p) == 14:
-        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], p[8], p[9], p[11], ast.Position(*get_pos(p)))
+    if isinstance(p[8], ast.ReturnStatement):
+        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], None, None, p[8], ast.Position(*get_pos(p)))
+    elif len(p) == 12:
+        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], p[8], p[9], p[10], ast.Position(*get_pos(p)))
     elif isinstance(p[8], ast.VarDeclList):
-        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], p[8], None, p[10], ast.Position(*get_pos(p)))
+        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], p[8], None, p[9], ast.Position(*get_pos(p)))
     else:
-        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], None, p[8], p[10], ast.Position(*get_pos(p)))
+        p[0] = ast.MethodDecl(p[1], p[2], p[3], p[5], None, p[8], p[9], ast.Position(*get_pos(p)))
 
+
+def p_stm_ret(p):
+    """
+    stm_ret : RETURN exp SEMICOLON
+    """
+    p[0] = ast.ReturnStatement(p[2], ast.Position(*get_pos(p)))
 
 def p_arg_s(p):
     """

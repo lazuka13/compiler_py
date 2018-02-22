@@ -78,7 +78,7 @@ class IRPrinter(IRVisitor):
         obj.expression.accept(self)
 
     def visit_binop(self, obj: Binop):
-        self.print_vertex(obj, f'Binary | {obj.operation} | {obj.position}')
+        self.print_vertex(obj, f'Binary | {self.format_binop(obj.operation)} | {obj.position}')
         self.print_edge(obj)
         self.parent = obj
         obj.left_expression.accept(self)

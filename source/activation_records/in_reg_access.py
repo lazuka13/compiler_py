@@ -6,7 +6,7 @@ from .temp_address import TempAddress
 
 
 class InRegAccess(IAccess):
-    def __init__(self, record_type, size, name=None, id=None):
+    def __init__(self, record_type, size, name: str = None, id: int = None):
         IAccess.__init__(self)
         self.record_type = record_type
         self.size = size
@@ -21,4 +21,5 @@ class InRegAccess(IAccess):
         return f'Register {self.name}'
 
     def get_exp(self, fp: Temp, position: Position) -> IExp:
+        del fp
         return Temp(self.name, None, None, position)

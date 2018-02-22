@@ -143,8 +143,8 @@ class Table:
         Возвращает информацию о классе из последнего Scope
         :return:
         """
-        if len(self.blocks) > 0 and self.blocks[0].class_info is not None:
-            return self.blocks[0].class_info
+        if len(self.blocks) > 0 and self.blocks[-1].class_info is not None:
+            return self.blocks[-1].class_info
         return None
 
     def does_type_have_super(self, class_info: ClassInfo, super_class_name: str,

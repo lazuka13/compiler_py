@@ -8,6 +8,8 @@ from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
 from type_checker.type_checker import TypeChecker
+from ir_tree.translate.ir_printer import IRPrinter
+from ir_tree.translate.ir_builder import IRBuilder
 from yacc import parse_program
 
 
@@ -74,8 +76,8 @@ def run_st_tests():
         program = parse_program(Path('../samples/good') / Path(sample))
 
         table = Table()
-        filler = TableFiller(table)
-        filler.fill_table(program, verbose=True)
+        filler = TableFiller(table, verbose=True)
+        filler.fill_table(program)
         print()
 
     if not os.path.exists('../tests/st/bad'):
@@ -88,8 +90,8 @@ def run_st_tests():
             program = parse_program(Path('../samples/bad') / Path(sample))
 
             table = Table()
-            filler = TableFiller(table)
-            filler.fill_table(program, verbose=True)
+            filler = TableFiller(table, verbose=True)
+            filler.fill_table(program)
         except SyntaxError as error:
             print(error)
         print()
@@ -117,7 +119,7 @@ def run_tc_tests():
 
         table = Table()
         filler = TableFiller(table)
-        filler.fill_table(program, verbose=False)
+        filler.fill_table(program)
 
         type_checker = TypeChecker(table)
         type_checker.check_ast_st(program)
@@ -133,8 +135,8 @@ def run_tc_tests():
             program = parse_program(Path('../samples/bad') / Path(sample))
 
             table = Table()
-            filler = TableFiller(table)
-            filler.fill_table(program, verbose=False)
+            filler = TableFiller(table, verbose=False)
+            filler.fill_table(program)
 
             type_checker = TypeChecker(table)
             type_checker.check_ast_st(program)
@@ -164,11 +166,56 @@ def run_ar_tests():
         program = parse_program(Path('../samples/good') / Path(sample))
 
         table = Table()
-        filler = TableFiller(table)
-        filler.fill_table(program, verbose=False)
+        filler = TableFiller(table, verbose=False)
+        filler.fill_table(program)
 
         frame_filler = FrameFiller(table)
         frame_filler.fill()
+        print()
+
+
+def run_ir_tests():
+    """
+    Прогоняет тесты записей активаций для всех программ
+    в папках samples/good и samples/bad
+    :return:
+    """
+    print("### Тесты IR ###")
+    print()
+
+    if not os.path.exists('../tests/ir_tree'):
+        os.mkdir('../tests/ir_tree')
+
+    if not os.path.exists('../tests/ir_tree/good'):
+        os.mkdir('../tests/ir_tree/good')
+
+    good_samples = os.listdir('../samples/good')
+    for sample in good_samples:
+        print(f'Разбираем хорошую программу {sample} ...')
+        program = parse_program(Path("../samples/good") / Path(sample))
+        print()
+
+        table = Table()
+        filler = TableFiller(table, verbose=False)
+        filler.fill_table(program)
+        table = filler.table
+
+        type_checker = TypeChecker(table)
+        type_checker.check_ast_st(program)
+
+        filler.fill_class_struct()
+        table = filler.table
+
+        frame_filler = FrameFiller(table, verbose=False)
+        frame_filler.fill()
+
+        builder = IRBuilder(table)
+        builder.parse(program)
+        trees = builder.trees
+
+        printer = IRPrinter(Path('../tests/ir_tree/good') / Path(sample.replace('.java', '.gv')))
+        printer.create_graph(trees)
+        printer.print_to_file()
         print()
 
 
@@ -196,6 +243,9 @@ def run_tests(test):
 
     if test == 'ar' or test == 'all':
         run_ar_tests()
+
+    if test == 'ir' or test == 'all':
+        run_ir_tests()
 
 
 if __name__ == '__main__':
