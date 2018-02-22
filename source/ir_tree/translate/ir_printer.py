@@ -108,7 +108,6 @@ class IRPrinter(IRVisitor):
         self.print_edge(obj, obj.expression)
 
     def visit_name(self, obj: Name):
-        print("ffff", type(obj.label_name))
         self.print_vertex(obj, f'Name | {str(obj.label_name.name)} | {obj.position}')
 
     def visit_temp(self, obj: Temp):

@@ -10,4 +10,3 @@ class Name(IExp):
             self.label_name = Label.get_next_enumerated_label()
         else:
             self.label_name = Label.get_label(name)
-        print(type(self.label_name))

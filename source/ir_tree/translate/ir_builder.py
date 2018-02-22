@@ -104,7 +104,6 @@ class IRBuilder(Visitor):
             obj.position
         )
         self.current_frame = method_info.get_frame()
-        print("FFFF", type(self.current_frame))
         stm = None
         for statement in obj.statement_list:
             statement.accept(self)
