@@ -92,7 +92,7 @@ class MethodInfo(Identifier):
         return len(self.vars_names)
 
     def get_full_name(self):
-        return self.class_name
+        return self.class_name + '@' + self.name
 
     def add_frame_info(self, frame: IFrame):
         self.frame = frame

@@ -15,6 +15,7 @@ class IRPrinter(IRVisitor):
                    'node [fontsize="18" shape="record"]; ' \
                    'edge [];' \
                    '\n'
+        self.parent = None
 
     def print_to_file(self):
         self.out = self.out + "}"
@@ -22,21 +23,17 @@ class IRPrinter(IRVisitor):
             file.write(self.out)
         print(f'IR Tree сохранено в файл {self.path}')
 
-    def print_edge(self, obj_from, obj_to, label=None):
-        if label is None:
-            self.out = self.out + "\tnode" + str(id(obj_from)) + "->" + "node" + str(id(obj_to)) + "\n"
-        else:
-            self.out = self.out + "\tnode" + str(id(obj_from)) + "->" + "node" + str(
-                id(obj_to)) + "[label=\"" + label + "\"]\n"
+    def print_edge(self, obj_to):
+        self.out = self.out + "\tnode" + str(id(self.parent)) + "->" + "node" + str(id(obj_to)) + "\n"
 
     def print_vertex(self, node, label):
         self.out = self.out + "\tnode" + str(id(node)) + "[label=\"" + str(label) + "\"]\n"
 
     def create_graph(self, forest: dict):
-        for tree in forest.items():
-            self.print_vertex(tree[0], f'Method | {tree[0]}')
-            tree[1].accept(self)
-            self.print_edge(tree[0], tree[1])
+        for key, value in forest.items():
+            self.print_vertex(key, f'Method | {key}')
+            self.parent = key
+            value.accept(self)
 
     def visit(self, obj: Visitable):
         if isinstance(obj, UnaryOp):
@@ -76,89 +73,104 @@ class IRPrinter(IRVisitor):
 
     def visit_unary_op(self, obj: UnaryOp):
         self.print_vertex(obj, f'Unary | {obj.operation} | {obj.position}')
+        self.print_edge(obj)
+        self.parent = obj
         obj.expression.accept(self)
-        self.print_edge(obj, obj.expression)
 
     def visit_binop(self, obj: Binop):
         self.print_vertex(obj, f'Binary | {obj.operation} | {obj.position}')
+        self.print_edge(obj)
+        self.parent = obj
         obj.left_expression.accept(self)
+        self.parent = obj
         obj.right_expression.accept(self)
-        self.print_edge(obj, obj.left_expression)
-        self.print_edge(obj, obj.right_expression)
 
     def visit_call(self, obj: Call):
         self.print_vertex(obj, f'Call | {obj.position}')
+        self.print_edge(obj)
+        self.parent = obj
         obj.args.accept(self)
+        self.parent = obj
         obj.func_expr.accept(self)
-        self.print_edge(obj, obj.args)
-        self.print_edge(obj, obj.func_expr)
 
     def visit_const(self, obj: Const):
         self.print_vertex(obj, f'Const | {str(obj.value)} | {obj.position}')
+        self.print_edge(obj)
 
     def visit_eseq(self, obj: Eseq):
         self.print_vertex(obj, f'Eseq | {obj.position}')
+        self.print_edge(obj)
+        self.parent = obj
         obj.statement.accept(self)
+        self.parent = obj
         obj.expression.accept(self)
-        self.print_edge(obj, obj.statement)
-        self.print_edge(obj, obj.expression)
 
     def visit_mem(self, obj: Mem):
         self.print_vertex(obj, f'Mem | {obj.position}')
+        self.print_edge(obj)
+        self.parent = obj
         obj.expression.accept(self)
-        self.print_edge(obj, obj.expression)
 
     def visit_name(self, obj: Name):
         self.print_vertex(obj, f'Name | {str(obj.label_name.name)} | {obj.position}')
+        self.print_edge(obj)
 
     def visit_temp(self, obj: Temp):
         self.print_vertex(obj, f'Temp | {self.format_temp(obj)} | {obj.position}')
+        self.print_edge(obj)
 
     def visit_exp(self, obj: Exp):
         self.print_vertex(obj, f'Exp | {obj.position}')
+        self.print_edge(obj)
+        self.parent = obj
         obj.expression.accept(self)
-        self.print_vertex(obj, obj.expression)
 
     def visit_jump(self, obj: Jump):
         self.print_vertex(obj, f'Jump | {obj.label_to_jump.name} | {obj.position}')
+        self.print_edge(obj)
 
     def visit_jumpc(self, obj: JumpC):
         self.print_vertex(obj, f'JumpC | {self.format_jump_type(obj.jump_type_enum)} | '
                                f'True: {obj.true_label.name} | '
                                f'False: {obj.true_label.name} | '
                                f'{obj.position}')
+        self.print_edge(obj)
+        self.parent = obj
         obj.condition_left_expression.accept(self)
+        self.parent = obj
         obj.condition_right_expression.accept(self)
-        self.print_edge(obj, obj.condition_left_expression)
-        self.print_edge(obj, obj.condition_right_expression)
 
     def visit_label_stm(self, obj: LabelStm):
         self.print_vertex(obj, f'LabrlStm | {obj.label_name.name} | {obj.position}')
+        self.print_edge(obj)
 
     def visit_move(self, obj: Move):
         self.print_vertex(obj, f'Move | {obj.position}')
+        self.print_edge(obj)
+        self.parent = obj
         obj.source.accept(self)
+        self.parent = obj
         obj.destination.accept(self)
-        self.print_edge(obj, obj.source)
-        self.print_edge(obj, obj.destination)
 
     def visit_seq(self, obj: Seq):
         self.print_vertex(obj, f'Seq | {obj.position}')
+        self.print_edge(obj)
         if obj.head is not None:
+            self.parent = obj
             obj.head.accept(self)
-            self.print_edge(obj, obj.head)
         if obj.tail is not None:
+            self.parent = obj
             obj.tail.accept(self)
-            self.print_edge(obj, obj.tail)
 
     def visit_exp_list(self, obj: ExpList):
         self.print_vertex(obj, f'ExpList | {obj.position}')
+        self.print_edge(obj)
         if obj.head is not None:
+            self.parent = obj
             obj.head.accept(self)
-            self.print_edge(obj, obj.head)
         if obj.tail is not None:
+            self.parent = obj
             obj.tail.accept(self)
-            self.print_edge(obj, obj.tail)
 
     def visit_stm_wrapper(self, obj: StmWrapper):
         obj.statement.accept(self)
@@ -166,7 +178,8 @@ class IRPrinter(IRVisitor):
     def visit_exp_wrapper(self, obj: ExpWrapper):
         obj.expression.accept(self)
 
-    def format_binop(self, binop_enum: BinopEnum):
+    @staticmethod
+    def format_binop(binop_enum: BinopEnum):
         if binop_enum == BinopEnum.MOD:
             return 'MOD'
         elif binop_enum == BinopEnum.MUL:
@@ -182,7 +195,8 @@ class IRPrinter(IRVisitor):
         else:
             assert False
 
-    def format_jump_type(self, jump_type_enum: JumpTypeEnum):
+    @staticmethod
+    def format_jump_type(jump_type_enum: JumpTypeEnum):
         if jump_type_enum == JumpTypeEnum.EQ:
             return '=='
         elif jump_type_enum == JumpTypeEnum.LT:
@@ -192,7 +206,8 @@ class IRPrinter(IRVisitor):
         else:
             assert False
 
-    def format_temp(self, temp: Temp):
+    @staticmethod
+    def format_temp(temp: Temp):
         assert temp is not None
         if temp.info_enum == InfoEnum.ID:
             return f'ID: {str(temp.id)} | {str(temp.local_id)}'
