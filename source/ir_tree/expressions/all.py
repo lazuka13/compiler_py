@@ -5,4 +5,4 @@ from .eseq import Eseq
 from .mem import Mem
 from .name import Name
 from .temp import Temp, InfoEnum
-from .unary_op import UnaryOp
+from .unary_op import UnaryOp, UnaryOpEnum

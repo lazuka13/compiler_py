@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
     # распечатываем IR дерево
     print('### Печать IR дерева ###')
-    printer = IRPrinter('../tests/it_tree.gv')
+    printer = IRPrinter('../tests/ir_tree.gv')
     printer.create_graph(trees)
     printer.print_to_file()
     print()
