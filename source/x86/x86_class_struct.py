@@ -85,6 +85,7 @@ class X86MiniJavaClassStruct(IClassStruct):
             position
         )
         prepare_actions = StmList(
+            prepare_actions,
             Move(
                 Mem(
                     Temp(None, None, base_address), position
@@ -92,11 +93,11 @@ class X86MiniJavaClassStruct(IClassStruct):
                 Name(self.get_table_name(), position),
                 position
             ),
-            prepare_actions,
             position
         )
         for offset in self.fields_offsets.items():
             prepare_actions = StmList(
+                prepare_actions,
                 Move(
                     Binop(
                         BinopEnum.PLUS,
@@ -110,7 +111,6 @@ class X86MiniJavaClassStruct(IClassStruct):
                     Const(0, position),
                     position
                 ),
-                prepare_actions,
                 position
             )
         return Eseq(prepare_actions, Temp(None, None, base_address), position)
