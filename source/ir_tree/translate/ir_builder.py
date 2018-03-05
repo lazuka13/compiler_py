@@ -136,7 +136,7 @@ class IRBuilder(Visitor):
             true_label = Label.get_next_enumerated_label()
             false_label = Label.get_next_enumerated_label()
             return_label = Label.get_next_enumerated_label()
-            condition = JumpC(JumpTypeEnum.LT, left, right, true_label, false_label, obj.position)
+            condition = JumpC(JumpTypeEnum.LT, left, right, true_label, obj.position)
             exp_value = Temp('exp_value', None, None, obj.position)
             true_branch = Seq(
                 Seq(
@@ -187,10 +187,10 @@ class IRBuilder(Visitor):
                     Seq(
                         Seq(
                             condition,
-                            true_branch,
+                            false_branch,
                             obj.position
                         ),
-                        false_branch,
+                        true_branch,
                         obj.position
                     ),
                     LabelStm(
@@ -208,23 +208,14 @@ class IRBuilder(Visitor):
         elif obj.binary_enum == BinaryEnum.AND:
             true_label = Label.get_next_enumerated_label()
             false_label = Label.get_next_enumerated_label()
-            continue_label = Label.get_next_enumerated_label()
             return_label = Label.get_next_enumerated_label()
             exp_value = Temp('exp_value', None, None, obj.position)
-            condition = JumpC(JumpTypeEnum.EQ, left, Const(1, obj.position), continue_label, false_label, obj.position)
+            condition = JumpC(JumpTypeEnum.NEQ, left, Const(1, obj.position), false_label, obj.position)
             true_branch = Seq(
+                JumpC(JumpTypeEnum.NEQ, right, Const(1, obj.position), false_label, obj.position),
                 Seq(
-                    LabelStm(continue_label, obj.position),
-                    JumpC(JumpTypeEnum.EQ, right, Const(1, obj.position), true_label, false_label, obj.position),
-                    obj.position
-                ),
-                Seq(
-                    LabelStm(true_label, obj.position),
-                    Seq(
-                        Move(exp_value, Const(1, obj.position), obj.position),
-                        Jump(return_label, obj.position),
-                        obj.position
-                    ),
+                    Move(exp_value, Const(1, obj.position), obj.position),
+                    Jump(return_label, obj.position),
                     obj.position
                 ),
                 obj.position
@@ -241,11 +232,15 @@ class IRBuilder(Visitor):
             result = Eseq(
                 Seq(
                     Seq(
-                        condition,
-                        true_branch,
+                        Seq(
+                            condition,
+                            true_branch,
+                            obj.position
+                        ),
+                        false_branch,
                         obj.position
                     ),
-                    false_branch,
+                    LabelStm(return_label, obj.position),
                     obj.position
                 ),
                 Temp(None, None, exp_value),
@@ -254,16 +249,11 @@ class IRBuilder(Visitor):
         elif obj.binary_enum == BinaryEnum.OR:
             true_label = Label.get_next_enumerated_label()
             false_label = Label.get_next_enumerated_label()
-            continue_label = Label.get_next_enumerated_label()
             return_label = Label.get_next_enumerated_label()
             exp_value = Temp('exp_value', None, None, obj.position)
-            condition = JumpC(JumpTypeEnum.EQ, left, Const(1, obj.position), true_label, continue_label, obj.position)
+            condition = JumpC(JumpTypeEnum.EQ, left, Const(1, obj.position), true_label, obj.position)
             true_branch = Seq(
-                Seq(
-                    LabelStm(continue_label, obj.position),
-                    JumpC(JumpTypeEnum.EQ, right, Const(1, obj.position), true_label, false_label, obj.position),
-                    obj.position
-                ),
+                JumpC(JumpTypeEnum.EQ, right, Const(1, obj.position), false_label, obj.position),
                 Seq(
                     LabelStm(true_label, obj.position),
                     Seq(
@@ -287,11 +277,15 @@ class IRBuilder(Visitor):
             result = Eseq(
                 Seq(
                     Seq(
-                        condition,
-                        true_branch,
+                        Seq(
+                            condition,
+                            true_branch,
+                            obj.position
+                        ),
+                        false_branch,
                         obj.position
                     ),
-                    false_branch,
+                    LabelStm(return_label, obj.position),
                     obj.position
                 ),
                 Temp(None, None, exp_value),
@@ -484,17 +478,12 @@ class IRBuilder(Visitor):
     def visit_if_statement(self, obj: IfStatement):
         obj.condition.accept(self)
         self.type_stack_visitor.pop_type_from_stack()
-        if_branch_label = Label.get_next_enumerated_label()
         else_branch_label = Label.get_next_enumerated_label()
         exit_label = Label.get_next_enumerated_label()
-        condition = self.main_subtree.to_conditional(if_branch_label, else_branch_label)
+        condition = self.main_subtree.to_conditional(JumpTypeEnum.NEQ, else_branch_label)
         obj.if_true.accept(self)
         if_part = Seq(
-            Seq(
-                LabelStm(if_branch_label, obj.position),
-                self.main_subtree.to_stm(),
-                obj.position
-            ),
+            self.main_subtree.to_stm(),
             Jump(exit_label, obj.position),
             obj.position
         )
@@ -527,18 +516,14 @@ class IRBuilder(Visitor):
     def visit_while_statement(self, obj: WhileStatement):
         obj.condition.accept(self)
         condition_label = Label.get_next_enumerated_label()
-        body_label = Label.get_next_enumerated_label()
         exit_label = Label.get_next_enumerated_label()
-        condition = self.main_subtree.to_conditional(body_label, exit_label)
+        condition = self.main_subtree.to_conditional(JumpTypeEnum.NEQ, exit_label)
         condition_part = Seq(LabelStm(condition_label, obj.position),
                              condition, obj.position)
         obj.action.accept(self)
         body_part = Seq(
-            LabelStm(body_label, obj.position),
-            Seq(
-                self.main_subtree.to_stm(),
-                Jump(condition_label, obj.position),
-                obj.position),
+            self.main_subtree.to_stm(),
+            Jump(condition_label, obj.position),
             obj.position
         )
         self.main_subtree = StmWrapper(

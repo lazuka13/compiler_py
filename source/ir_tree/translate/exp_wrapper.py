@@ -16,6 +16,6 @@ class ExpWrapper(ISubtreeWrapper):
     def to_stm(self):
         return Exp(self.expression)
 
-    def to_conditional(self, true_label: Label, false_label: Label):
+    def to_conditional(self, jump_type: JumpTypeEnum, true_label: Label):
         name = 'true'
-        return JumpC(JumpTypeEnum.EQ, self.expression, Temp(name, None, None), true_label, false_label)
+        return JumpC(jump_type, self.expression, Temp(name, None, None), true_label)

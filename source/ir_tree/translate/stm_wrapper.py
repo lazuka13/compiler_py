@@ -1,6 +1,7 @@
 from .i_subtree_wrapper import ISubtreeWrapper
 from ir_tree.statements.i_stm import IStm
 from ir_tree.label import Label
+from ir_tree.statements.jumpc import JumpTypeEnum
 
 
 class StmWrapper(ISubtreeWrapper):
@@ -13,5 +14,5 @@ class StmWrapper(ISubtreeWrapper):
     def to_stm(self):
         return self.statement
 
-    def to_conditional(self, true_label: Label, false_label: Label):
+    def to_conditional(self, jump_type: JumpTypeEnum, true_label: Label):
         assert False

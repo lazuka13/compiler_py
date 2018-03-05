@@ -1,5 +1,5 @@
 from ir_tree.expressions.i_exp import IExp
-from ir_tree.statements.i_stm import IStm
+from ir_tree.statements.jumpc import JumpTypeEnum
 from ir_tree.label import Label
 from typing import Dict
 
@@ -11,7 +11,7 @@ class ISubtreeWrapper:
     def to_stm(self):
         pass
 
-    def to_conditional(self, true_label, false_label):
+    def to_conditional(self, jump_type: JumpTypeEnum, true_label: Label):
         pass
 
     def accept(self, visitor):

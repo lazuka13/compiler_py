@@ -132,7 +132,6 @@ class IRPrinter(IRVisitor):
     def visit_jumpc(self, obj: JumpC):
         self.print_vertex(obj, f'JumpC | {self.format_jump_type(obj.jump_type_enum)} | '
                                f'True: {obj.true_label.name} | '
-                               f'False: {obj.false_label.name} | '
                                f'{obj.position}')
         self.print_edge(obj)
         self.parent = obj
