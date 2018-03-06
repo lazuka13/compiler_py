@@ -9,6 +9,12 @@ class ExpList(IExp):
         self.head = head
         self.tail = tail
 
+    def is_commutative(self):
+        return False
+
+    def is_absolutely_commutative(self):
+        return False
+
 
 class StmList(IStm):
     def __init__(self, head: IStm = None, tail: IStm = None, position=Position(0, 0)):

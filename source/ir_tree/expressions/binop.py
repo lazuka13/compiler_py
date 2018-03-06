@@ -20,3 +20,9 @@ class Binop(IExp):
         self.operation = operation
         self.left_expression = left_expression
         self.right_expression = right_expression
+
+    def is_commutative(self):
+        return False
+
+    def is_absolutely_commutative(self):
+        return False

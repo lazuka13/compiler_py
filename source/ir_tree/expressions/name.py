@@ -10,3 +10,9 @@ class Name(IExp):
             self.label_name = Label.get_next_enumerated_label()
         else:
             self.label_name = Label.get_label(name)
+
+    def is_commutative(self):
+        return True
+
+    def is_absolutely_commutative(self):
+        return True

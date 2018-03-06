@@ -12,6 +12,7 @@ class InfoEnum(Enum):
 
 class Temp(IExp):
     counter: int = 0
+    temp_holder_local_id = 9000
 
     def __init__(self, name: str = None, local_id: int = None, temp: 'Temp' = None,
                  position: Position = Position(0, 0)):
@@ -34,3 +35,9 @@ class Temp(IExp):
             self.name = temp.name
             self.info_enum = temp.info_enum
             self.position = temp.position
+
+    def is_commutative(self):
+        return True
+
+    def is_absolutely_commutative(self):
+        return self.local_id == self.temp_holder_local_id

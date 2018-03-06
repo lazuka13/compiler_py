@@ -2,17 +2,13 @@
 import os
 
 from activation_records.frame_filler import FrameFiller
-
+from ir_tree.translate.eseq_canonizer import EseqCanonizer
 from ir_tree.translate.ir_builder import IRBuilder
 from ir_tree.translate.ir_printer import IRPrinter
-
 from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
-
 from syntax_tree import Printer
-
 from type_checker.type_checker import TypeChecker
-
 from yacc import parse_program
 
 if __name__ == '__main__':
@@ -66,5 +62,21 @@ if __name__ == '__main__':
     print('### Печать IR дерева ###')
     printer = IRPrinter('../tests/ir_tree.gv')
     printer.create_graph(trees)
+    printer.print_to_file()
+    print()
+
+    # канонизируем IR дерево
+    print('### Канонизация IR дерева ###')
+    canonizer = EseqCanonizer()
+    canonized_trees = dict()
+    for key, tree in trees.items():
+        canonized_tree = canonizer.canonize(tree)
+        canonized_trees[key] = canonized_tree
+    print()
+
+    # распечатываем канонизированное IR дерево
+    print('### Печать канонизированного IR дерева ###')
+    printer = IRPrinter('../tests/canonized_tree.gv')
+    printer.create_graph(canonized_trees)
     printer.print_to_file()
     print()

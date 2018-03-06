@@ -1,5 +1,6 @@
 from ir_tree.expressions.i_exp import IExp
 from ir_tree.expressions.temp import Temp
+from ir_tree.expressions.mem import Mem
 from syntax_tree import Position
 from .i_access import IAccess
 from .temp_address import TempAddress
@@ -22,4 +23,4 @@ class InRegAccess(IAccess):
 
     def get_exp(self, fp: Temp, position: Position) -> IExp:
         del fp
-        return Temp(self.name, None, None, position)
+        return Mem(Temp(self.name, None, None, position), position)

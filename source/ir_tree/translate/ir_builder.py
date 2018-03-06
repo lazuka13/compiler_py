@@ -108,11 +108,26 @@ class IRBuilder(Visitor):
         )
         self.current_frame = method_info.get_frame()
         stm = None
-        for statement in obj.statement_list:
-            statement.accept(self)
+        if len(obj.statement_list) > 0:
+            statements = []
+            for statement in obj.statement_list:
+                statement.accept(self)
+                statements.append(self.main_subtree.to_stm())
+            assert len(statements) > 0
+            if len(statements) == 1:
+                self.main_subtree = StmWrapper(statements[0])
+            else:
+                seq = Seq(statements[0], statements[1], obj.position)
+                for i in range(2, len(statements), 1):
+                    seq = Seq(seq, statements[i], obj.position)
+                self.main_subtree = StmWrapper(seq)
             stm = StmList(self.main_subtree.to_stm(), None, obj.position)
+
         obj.return_statement.accept(self)
-        stm = StmList(stm, self.main_subtree.to_stm(), obj.position)
+        if stm is not None:
+            stm = StmList(stm, self.main_subtree.to_stm(), obj.position)
+        else:
+            stm = self.main_subtree.to_stm()
         name = method_info.get_full_name()
         self.trees[name] = StmWrapper(stm)
         switcher.destroy()
@@ -187,10 +202,10 @@ class IRBuilder(Visitor):
                     Seq(
                         Seq(
                             condition,
-                            false_branch,
+                            true_branch,
                             obj.position
                         ),
-                        true_branch,
+                        false_branch,
                         obj.position
                     ),
                     LabelStm(
@@ -243,7 +258,7 @@ class IRBuilder(Visitor):
                     LabelStm(return_label, obj.position),
                     obj.position
                 ),
-                Temp(None, None, exp_value),
+                Mem(Temp(None, None, exp_value), obj.position),
                 obj.position
             )
         elif obj.binary_enum == BinaryEnum.OR:
@@ -288,7 +303,7 @@ class IRBuilder(Visitor):
                     LabelStm(return_label, obj.position),
                     obj.position
                 ),
-                Temp(None, None, exp_value),
+                Mem(Temp(None, None, exp_value), obj.position),
                 obj.position
             )
         else:
@@ -360,8 +375,11 @@ class IRBuilder(Visitor):
                 self.main_subtree.to_exp(),
                 obj.position
             ),
-            Temp(
-                None, None, base_address, obj.position
+            Mem(
+                Temp(
+                    None, None, base_address, obj.position
+                ),
+                obj.position
             )
         )
         info: TypeInfo = self.type_stack_visitor.get_type_from_stack()

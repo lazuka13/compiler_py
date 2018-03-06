@@ -9,3 +9,9 @@ class Call(IExp):
         IExp.__init__(self, position)
         self.func_expr = func_expr
         self.args = args
+
+    def is_commutative(self):
+        return False
+
+    def is_absolutely_commutative(self):
+        return False

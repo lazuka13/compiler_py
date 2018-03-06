@@ -8,3 +8,9 @@ class Eseq(IExp):
         IExp.__init__(self, position)
         self.statement = statement
         self.expression = expression
+
+    def is_commutative(self):
+        return False
+
+    def is_absolutely_commutative(self):
+        return False

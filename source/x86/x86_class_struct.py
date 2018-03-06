@@ -113,4 +113,4 @@ class X86MiniJavaClassStruct(IClassStruct):
                 ),
                 position
             )
-        return Eseq(prepare_actions, Temp(None, None, base_address), position)
+        return Eseq(prepare_actions, Mem(Temp(None, None, base_address), position), position)
