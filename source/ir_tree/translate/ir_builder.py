@@ -86,6 +86,7 @@ class IRBuilder(Visitor):
             statement.accept(self)
         assert self.main_subtree is not None
         self.trees[obj.id.name + '@MAIN'] = self.main_subtree
+        self.main_subtree = None
 
     def visit_class_decl(self, obj: ClassDecl):
         switcher = TypeScopeSwitcher(
@@ -307,7 +308,7 @@ class IRBuilder(Visitor):
                 obj.position
             )
         else:
-            raise Exception('Hello there! - General Kenobi!')  # TODO
+            raise Exception('Hello there! - General Kenobi!')
         self.main_subtree = ExpWrapper(result)
         self.type_stack_visitor.visit(obj)
 
@@ -365,6 +366,7 @@ class IRBuilder(Visitor):
         obj.right.accept(self)
         self.type_stack_visitor.pop_type_from_stack()
         self.main_subtree = ExpWrapper(UnaryOp(UnaryOpEnum.NOT, self.main_subtree.to_exp(), obj.position))
+        self.type_stack_visitor.visit(obj)
 
     def visit_call_method_expr(self, obj: CallMethodExpr):
         obj.expr.accept(self)
@@ -435,6 +437,7 @@ class IRBuilder(Visitor):
         obj.position_in_arr.accept(self)
         self.type_stack_visitor.pop_type_from_stack()
         position_in_arr_expr = self.main_subtree
+        self.main_subtree = None
         obj.expr.accept(self)
         access = self.current_frame.find_local_or_formal(obj.id.name)
         if access is not None:
@@ -560,8 +563,18 @@ class IRBuilder(Visitor):
         )
 
     def visit_statements(self, obj: Statements):
+        statements = []
         for statement in obj.statement_list:
             statement.accept(self)
+            statements.append(self.main_subtree.to_stm())
+        assert len(statements) > 0
+        if len(statements) == 1:
+            self.main_subtree = StmWrapper(statements[0])
+        else:
+            seq = Seq(statements[0], statements[1], obj.position)
+            for i in range(2, len(statements), 1):
+                seq = Seq(seq, statements[i], obj.position)
+            self.main_subtree = StmWrapper(seq)
 
     def visit_random_access_expr(self, obj: RandomAccessExpr):
         obj.object.accept(self)

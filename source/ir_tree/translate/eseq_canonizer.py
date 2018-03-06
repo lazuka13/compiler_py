@@ -18,20 +18,28 @@ class EseqCanonizer(IRVisitor):
     def canonize(self, wrapper: ISubtreeWrapper):
         self.last_eseq = Eseq(None, None)
         wrapper.accept(self)
-        return StmWrapper(self.last_eseq.statement)
+        stm_wrapper = StmWrapper(self.last_eseq.statement)
+        self.last_eseq.statement = None
+        return stm_wrapper
 
     def reorder(self, exp: IExp):
         exp.accept(self)
+        exp = None
         self.decompose_eseq()
         exp = self.last_eseq.expression
-        return self.last_eseq.statement, exp
+        self.last_eseq.expression = None
+        statement = self.last_eseq.statement
+        self.last_eseq.statement = None
+        return statement, exp
 
     def add_seq_if_required(self, stm: IStm):
         assert stm is not None
         if self.last_eseq.statement is None:
             return stm
         else:
-            return Seq(self.last_eseq.statement, stm)
+            statement = self.last_eseq.statement
+            self.last_eseq.statement = None
+            return Seq(statement, stm)
 
     def decompose_eseq(self):
         if self.last_eseq.statement is None or self.last_eseq.expression is None:
@@ -40,7 +48,9 @@ class EseqCanonizer(IRVisitor):
             return
         else:
             holder: Temp = Temp(None, Temp.temp_holder_local_id, None)
-            self.last_eseq.statement = Seq(self.last_eseq.statement, Move(holder, self.last_eseq.expression))
+            statement, expression = self.last_eseq.statement, self.last_eseq.expression
+            self.last_eseq.statement = None, None
+            self.last_eseq.statement = Seq(statement, Move(holder, expression))
             self.last_eseq.expression = Mem(Temp(None, None, holder))
 
     def visit(self, visitable: Visitable):
@@ -91,7 +101,9 @@ class EseqCanonizer(IRVisitor):
 
     def visit_call(self, obj: Call):
         obj.args.accept(self)
+        obj.args = None
         obj.args = self.last_eseq.expression
+        self.last_eseq.expression = None
         self.last_eseq.statement, obj.func_expr = self.reorder(obj.func_expr)
         self.last_eseq.expression = obj
 
@@ -100,13 +112,17 @@ class EseqCanonizer(IRVisitor):
 
     def visit_eseq(self, obj: Eseq):
         obj.statement.accept(self)
+        obj.statement = None
         self.last_eseq.statement, obj.expression = self.reorder(obj.expression)
         self.last_eseq.expression = obj.expression
+        obj.expression = None
         del obj
 
     def visit_mem(self, obj: Mem):
         obj.expression.accept(self)
+        obj.expression = None
         obj.expression = self.last_eseq.expression
+        self.last_eseq.expression = None
         self.last_eseq.expression = obj
 
     def visit_name(self, obj: Name):
@@ -147,8 +163,10 @@ class EseqCanonizer(IRVisitor):
 
     def visit_seq(self, obj: Seq):
         obj.head.accept(self)
+        obj.head = None
         if obj.tail is not None:
             obj.tail.accept(self)
+        obj.tail = None
         del obj
 
     def visit_exp_list(self, obj: ExpList):
@@ -159,7 +177,9 @@ class EseqCanonizer(IRVisitor):
 
         if obj.tail is not None:
             obj.tail.accept(self)
+            obj.tail = None
             obj.tail = self.last_eseq.expression
+            self.last_eseq.expression = None
 
         self.last_eseq.expression = obj
 
