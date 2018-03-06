@@ -9,6 +9,8 @@
 - [x] type checker
 - [x] activation records
 - [x] ir tree
+- [x] canonized ir tree
+- [x] linearized ir tree
 
 TODO:
 
@@ -85,3 +87,9 @@ Exit address: Register 2
 
 **Intermediate Representation Tree**
 <img src="./docs/images/ir_tree.svg"/>  
+
+**Canonized Intermediate Representation Tree**
+<img src="./docs/images/cir_tree.svg"/>  
+
+**Linearized Intermediate Representation Tree**
+<img src="./docs/images/linear_tree.svg"/>  

@@ -1,15 +1,18 @@
 import os
+import sys
 from pathlib import Path
 
 import click
 
 from activation_records.frame_filler import FrameFiller
+from ir_tree.translate.eseq_canonizer import EseqCanonizer
+from ir_tree.translate.ir_builder import IRBuilder
+from ir_tree.translate.ir_printer import IRPrinter
+from ir_tree.translate.linearizer import Linearizer
 from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
 from type_checker.type_checker import TypeChecker
-from ir_tree.translate.ir_printer import IRPrinter
-from ir_tree.translate.ir_builder import IRBuilder
 from yacc import parse_program
 
 
@@ -219,9 +222,121 @@ def run_ir_tests():
         print()
 
 
+def run_cir_tests():
+    """
+    Прогоняет тесты канонизации IR деревьев
+    в папке samples/good
+    :return:
+    """
+    sys.setrecursionlimit(1500)
+
+    print("### Тесты CIR ###")
+    print()
+
+    if not os.path.exists('../tests/cir_tree'):
+        os.mkdir('../tests/cir_tree')
+
+    if not os.path.exists('../tests/cir_tree/good'):
+        os.mkdir('../tests/cir_tree/good')
+
+    good_samples = os.listdir('../samples/good')
+    for sample in good_samples:
+        print(f'Разбираем хорошую программу {sample} ...')
+        program = parse_program(Path("../samples/good") / Path(sample))
+        print()
+
+        table = Table()
+        filler = TableFiller(table, verbose=False)
+        filler.fill_table(program)
+        table = filler.table
+
+        type_checker = TypeChecker(table)
+        type_checker.check_ast_st(program)
+
+        filler.fill_class_struct()
+        table = filler.table
+
+        frame_filler = FrameFiller(table, verbose=False)
+        frame_filler.fill()
+
+        builder = IRBuilder(table)
+        builder.parse(program)
+        trees = builder.trees
+
+        canonizer = EseqCanonizer()
+        canonized_trees = dict()
+        for key, tree in trees.items():
+            canonized_tree = canonizer.canonize(tree)
+            canonized_trees[key] = canonized_tree
+
+        printer = IRPrinter(Path('../tests/cir_tree/good') / Path(sample.replace('.java', '.gv')))
+        printer.create_graph(canonized_trees)
+        printer.print_to_file()
+        print()
+
+
+def run_lir_tests():
+    """
+    Прогоняет тесты линеаризации канонических IR деревьев
+    в папке samples/good
+    :return:
+    """
+    sys.setrecursionlimit(1500)
+
+    print("### Тесты LIR ###")
+    print()
+
+    if not os.path.exists('../tests/lir_tree'):
+        os.mkdir('../tests/lir_tree')
+
+    if not os.path.exists('../tests/lir_tree/good'):
+        os.mkdir('../tests/lir_tree/good')
+
+    good_samples = os.listdir('../samples/good')
+    for sample in good_samples:
+        print(f'Разбираем хорошую программу {sample} ...')
+        program = parse_program(Path("../samples/good") / Path(sample))
+        print()
+
+        table = Table()
+        filler = TableFiller(table, verbose=False)
+        filler.fill_table(program)
+        table = filler.table
+
+        type_checker = TypeChecker(table)
+        type_checker.check_ast_st(program)
+
+        filler.fill_class_struct()
+        table = filler.table
+
+        frame_filler = FrameFiller(table, verbose=False)
+        frame_filler.fill()
+
+        builder = IRBuilder(table)
+        builder.parse(program)
+        trees = builder.trees
+
+        canonizer = EseqCanonizer()
+        canonized_trees = dict()
+        for key, tree in trees.items():
+            canonized_tree = canonizer.canonize(tree)
+            canonized_trees[key] = canonized_tree
+
+        linearizer = Linearizer()
+        linearized = dict()
+        for tree_key, tree_value in canonized_trees.items():
+            linearized[tree_key] = []
+            linearized[tree_key] = linearizer.linearize(tree_value, linearized[tree_key])
+
+        printer = IRPrinter(Path('../tests/lir_tree/good') / Path(sample.replace('.java', '.gv')))
+        printer.create_linearized_graph(linearized)
+        printer.print_to_file()
+        print()
+
+
 @click.command()
 @click.option('--test', '-t', default='all',
-              help='What to test? (ast, st, tc, ar, all).')
+              help='What to test? (ast, st, tc, ar, ir, cir, lir, all).')
 def run_tests(test):
     if not os.path.exists('../tests'):
         os.mkdir('../tests')
@@ -246,6 +361,12 @@ def run_tests(test):
 
     if test == 'ir' or test == 'all':
         run_ir_tests()
+
+    if test == 'cir' or test == 'all':
+        run_cir_tests()
+
+    if test == 'lir' or test == 'all':
+        run_lir_tests()
 
 
 if __name__ == '__main__':

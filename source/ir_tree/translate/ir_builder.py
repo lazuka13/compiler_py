@@ -309,6 +309,7 @@ class IRBuilder(Visitor):
             )
         else:
             raise Exception('Hello there! - General Kenobi!')
+
         self.main_subtree = ExpWrapper(result)
         self.type_stack_visitor.visit(obj)
 
@@ -421,8 +422,7 @@ class IRBuilder(Visitor):
                     obj.position
                 ),
                 obj.position
-            ),
-            obj.position
+            )
         )
         self.main_subtree = ExpWrapper(Call(Name(MALLOC_NAME, obj.position), args, obj.position))
         self.type_stack_visitor.visit(obj)

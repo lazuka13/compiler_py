@@ -23,6 +23,7 @@ class Linearizer(IRVisitor):
         self.statements = stms
         wrapper.accept(self)
         self.statements = None
+        return stms
 
     def add_to_statements(self, stm: IStm):
         self.statements.append(stm)
@@ -111,10 +112,12 @@ class Linearizer(IRVisitor):
             obj.head.accept(self)
             if self.is_previous_detached:
                 self.is_previous_detached = False
+                obj.head = None
         if obj.tail is not None:
             obj.tail.accept(self)
             if self.is_previous_detached:
                 self.is_previous_detached = False
+                obj.tail = None
 
     def visit_stm_wrapper(self, obj: StmWrapper):
         stm = obj.to_stm()

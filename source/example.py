@@ -75,18 +75,24 @@ if __name__ == '__main__':
         canonized_trees[key] = canonized_tree
     print()
 
+    print('### Печать IR дерева ###')
+    printer = IRPrinter('../tests/cir_tree.gv')
+    printer.create_graph(canonized_trees)
+    printer.print_to_file()
+    print()
+
     # линеаризируем IR дерево
     print('### Линеаризация дерева ###')
     linearizer = Linearizer()
     linearized = dict()
     for tree_key, tree_value in canonized_trees.items():
         linearized[tree_key] = []
-        linearizer.linearize(tree_value, linearized[tree_key])
+        linearized[tree_key] = linearizer.linearize(tree_value, linearized[tree_key])
     print()
 
     # распечатываем линеаризированное IR дерево
     print('### Печать линеаризированного IR дерева ###')
     printer = IRPrinter('../tests/linear_tree.gv')
-    printer.create_graph(canonized_trees)
+    printer.create_linearized_graph(linearized)
     printer.print_to_file()
     print()
