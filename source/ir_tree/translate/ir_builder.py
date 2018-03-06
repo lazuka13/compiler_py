@@ -202,10 +202,10 @@ class IRBuilder(Visitor):
                     Seq(
                         Seq(
                             condition,
-                            true_branch,
+                            false_branch,
                             obj.position
                         ),
-                        false_branch,
+                        true_branch,
                         obj.position
                     ),
                     LabelStm(

@@ -1,7 +1,7 @@
+from ir_tree.expressions.all import *
 from ir_tree.ir_visitor import IRVisitor
 from ir_tree.list import ExpList
 from ir_tree.statements.all import *
-from ir_tree.expressions.all import *
 from ir_tree.translate.exp_wrapper import ExpWrapper
 from ir_tree.translate.stm_wrapper import StmWrapper
 from syntax_tree import Visitable
@@ -34,6 +34,13 @@ class IRPrinter(IRVisitor):
             self.print_vertex(key, f'Method | {key}')
             self.parent = key
             value.accept(self)
+
+    def create_linearized_graph(self, forest: dict):
+        for key, value in forest.items():
+            self.print_vertex(key, f'Method | {key}')
+            for statement in value:
+                self.parent = key
+                statement.accept(self)
 
     def visit(self, obj: Visitable):
         if isinstance(obj, UnaryOp):

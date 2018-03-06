@@ -3,6 +3,7 @@ import os
 
 from activation_records.frame_filler import FrameFiller
 from ir_tree.translate.eseq_canonizer import EseqCanonizer
+from ir_tree.translate.linearizer import Linearizer
 from ir_tree.translate.ir_builder import IRBuilder
 from ir_tree.translate.ir_printer import IRPrinter
 from symbol_table.table import Table
@@ -74,9 +75,18 @@ if __name__ == '__main__':
         canonized_trees[key] = canonized_tree
     print()
 
-    # распечатываем канонизированное IR дерево
+    # линеаризируем IR дерево
+    print('### Линеаризация дерева ###')
+    linearizer = Linearizer()
+    linearized = dict()
+    for tree_key, tree_value in canonized_trees.items():
+        linearized[tree_key] = []
+        linearizer.linearize(tree_value, linearized[tree_key])
+    print()
+
+    # распечатываем линеаризированное IR дерево
     print('### Печать канонизированного IR дерева ###')
-    printer = IRPrinter('../tests/canonized_tree.gv')
+    printer = IRPrinter('../tests/linear_tree.gv')
     printer.create_graph(canonized_trees)
     printer.print_to_file()
     print()
