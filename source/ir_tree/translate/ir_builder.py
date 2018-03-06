@@ -268,7 +268,7 @@ class IRBuilder(Visitor):
             exp_value = Temp('exp_value', None, None, obj.position)
             condition = JumpC(JumpTypeEnum.EQ, left, Const(1, obj.position), true_label, obj.position)
             true_branch = Seq(
-                JumpC(JumpTypeEnum.EQ, right, Const(1, obj.position), false_label, obj.position),
+                JumpC(JumpTypeEnum.NEQ, right, Const(1, obj.position), false_label, obj.position),
                 Seq(
                     LabelStm(true_label, obj.position),
                     Seq(
@@ -569,6 +569,7 @@ class IRBuilder(Visitor):
         obj.position_in_arr.accept(self)
         element_number = self.main_subtree.to_exp()
         self.main_subtree = ExpWrapper(array_struct.get_element(array_base, element_number, obj.position))
+        self.type_stack_visitor.visit(obj)
 
     def visit_this_expr(self, obj: ThisExpr):
         self.main_subtree = ExpWrapper(

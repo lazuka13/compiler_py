@@ -3,9 +3,9 @@ import os
 
 from activation_records.frame_filler import FrameFiller
 from ir_tree.translate.eseq_canonizer import EseqCanonizer
-from ir_tree.translate.linearizer import Linearizer
 from ir_tree.translate.ir_builder import IRBuilder
 from ir_tree.translate.ir_printer import IRPrinter
+from ir_tree.translate.linearizer import Linearizer
 from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
@@ -85,7 +85,7 @@ if __name__ == '__main__':
     print()
 
     # распечатываем линеаризированное IR дерево
-    print('### Печать канонизированного IR дерева ###')
+    print('### Печать линеаризированного IR дерева ###')
     printer = IRPrinter('../tests/linear_tree.gv')
     printer.create_graph(canonized_trees)
     printer.print_to_file()
