@@ -6,6 +6,7 @@ from ir_tree.translate.eseq_canonizer import EseqCanonizer
 from ir_tree.translate.ir_builder import IRBuilder
 from ir_tree.translate.ir_printer import IRPrinter
 from ir_tree.translate.linearizer import Linearizer
+from ir_tree.translate.no_jump_block import NoJumpBlocksForest, NoJumpTree
 from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
@@ -94,5 +95,22 @@ if __name__ == '__main__':
     print('### Печать линеаризированного IR дерева ###')
     printer = IRPrinter('../tests/linear_tree.gv')
     printer.create_linearized_graph(linearized)
+    printer.print_to_file()
+    print()
+
+    # генерируем reblocked IR дерево
+    print('### Генерация Reblocked IR дерева ###')
+    no_jump_forest: NoJumpBlocksForest = dict()
+    for tree_key, tree_value in linearized.items():
+        no_jump_forest[tree_key] = NoJumpTree(tree_value)
+    reblocked = dict()
+    for tree_key, tree_value in no_jump_forest.items():
+        reblocked[tree_key] = tree_value.build_tree()
+    print()
+
+    # распечатываем reblocked IR дерево
+    print('### Печать Reblocked IR дерева ###')
+    printer = IRPrinter('../tests/reblocked_tree.gv')
+    printer.create_linearized_graph(reblocked)
     printer.print_to_file()
     print()

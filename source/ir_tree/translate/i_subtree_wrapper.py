@@ -1,7 +1,8 @@
-from ir_tree.expressions.i_exp import IExp
-from ir_tree.statements.jumpc import JumpTypeEnum
+from typing import Dict, List
+
 from ir_tree.label import Label
-from typing import Dict
+from ir_tree.statements.i_stm import IStm
+from ir_tree.statements.jumpc import JumpTypeEnum
 
 
 class ISubtreeWrapper:
@@ -18,4 +19,6 @@ class ISubtreeWrapper:
         visitor.visit(self)
 
 
+LinearTree: List[IStm] = list
 IRForest: Dict[str, ISubtreeWrapper] = dict
+IRLinearForest: Dict[str, LinearTree] = dict
