@@ -11,6 +11,7 @@ from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
 from type_checker.type_checker import TypeChecker
+from x86.x86_code_generation import Muncher
 from yacc import parse_program
 
 if __name__ == '__main__':
@@ -113,4 +114,14 @@ if __name__ == '__main__':
     printer = IRPrinter('../tests/reblocked_tree.gv')
     printer.create_linearized_graph(reblocked)
     printer.print_to_file()
+    print()
+
+    for tree_key, tree in reblocked.items():
+        print(tree_key)
+        print("-"*10)
+        muncher = Muncher(tree)
+        list = muncher.create_instructions_list()
+        for l in list.instructions:
+            print(l.format(), end='')
+        print()
     print()
