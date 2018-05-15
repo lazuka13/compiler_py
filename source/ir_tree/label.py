@@ -1,3 +1,6 @@
+from typing import Dict, List
+
+
 LABEL_PREFIX = 'label_'
 
 
@@ -25,3 +28,6 @@ class Label:
         label_name = LABEL_PREFIX + str(id)
         id += 1
         return Label.get_label(label_name)
+
+
+LabelList: List[Label] = list

@@ -1,6 +1,7 @@
 from ir_tree.expressions.i_exp import IExp
 from ir_tree.statements.i_stm import IStm
 from syntax_tree import Position
+from typing import Dict, List
 
 
 class ExpList(IExp):
@@ -21,3 +22,6 @@ class StmList(IStm):
         IStm.__init__(self, position)
         self.head = head
         self.tail = tail
+
+#ExpList: List[IExp] = list
+#StmList: List[IStm] = list
