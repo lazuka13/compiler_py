@@ -84,7 +84,8 @@ class Muncher:
                 self.emit(RegMove(
                     "MOV %0 %1",
                     self.munch_exp(exp.expression),
-                    result
+                    result,
+                    True
                 ))
                 self.emit(CISCOperation(
                     "NOT %0",
@@ -100,50 +101,48 @@ class Muncher:
     def munch_move(self, source, destination):
         if isinstance(source, Mem):
             exp = source.expression
-            if isinstance(exp, Binop) and \
-                            exp.operation == BinopEnum.PLUS:
+            if isinstance(exp, Binop) and exp.operation == BinopEnum.PLUS:
                 if isinstance(exp.right_expression, Const):
                     self.emit(RegMove(
                         "MOV %0 [%1+" + str(exp.right_expression.value) + "]",
                         self.munch_exp(exp.left_expression),
-                        self.munch_exp(destination)
+                        self.munch_exp(destination),
                     ))
                 elif isinstance(exp.left_expression, Const):
                     self.emit(RegMove(
                         "MOV %0 [%1+" + str(exp.left_expression.value) + "]",
                         self.munch_exp(exp.right_expression),
-                        self.munch_exp(destination)
+                        self.munch_exp(destination),
                     ))
                 else:
                     self.emit(RegMove(
                         "MOV %0 [%1]",
                         self.munch_exp(exp),
-                        self.munch_exp(destination)
+                        self.munch_exp(destination),
                     ))
             elif isinstance(exp, Temp):
                 self.emit(RegMove(
                     "MOV %0 %1",
                     exp,
-                    self.munch_exp(destination)
+                    self.munch_exp(destination),
                 ))
             else:
                 self.emit(RegMove(
                     "MOV %0 [%1]",
                     self.munch_exp(exp),
-                    self.munch_exp(destination)
+                    self.munch_exp(destination),
                 ))
         ###
         elif isinstance(destination, Mem):
             exp = destination.expression
-            if isinstance(exp, Binop) and \
-                            exp.operation == BinopEnum.PLUS:
+            if isinstance(exp, Binop) and exp.operation == BinopEnum.PLUS:
                 if isinstance(exp.right_expression, Const):
                     self.emit(RegMove(
                         "MOV [%0 + " + str(exp.right_expression.value) + "] %1",
                         _fromlist=[
                             self.munch_exp(source),
                             self.munch_exp(exp.left_expression)
-                        ]
+                        ],
                     ))
                 elif isinstance(exp.left_expression, Const):
                     self.emit(RegMove(
@@ -181,7 +180,8 @@ class Muncher:
             self.emit(RegMove(
                 "MOV %0 %1",
                 self.munch_exp(source),
-                self.munch_exp(destination)
+                self.munch_exp(destination),
+                True
             ))
 
     def munch_exp_list(self, exp_list: ExpList):
@@ -202,8 +202,7 @@ class Muncher:
 
     def munch_mem(self, mem: Mem):
         exp = mem.expression
-        if isinstance(exp, Binop) and \
-                        exp.operation == BinopEnum.PLUS:
+        if isinstance(exp, Binop) and exp.operation == BinopEnum.PLUS:
             if isinstance(exp.right_expression, Const):
                 left = self.munch_exp(exp.left_expression)
                 returned_reg = Temp("MEM(BINOP(PLUS, e1, CONST(i)))")
@@ -332,7 +331,6 @@ class Muncher:
                 [returned_reg]
             ))
             return returned_reg
-
 
     def munch_binop_mul(self, binop: Binop):
         returned_reg = Temp("BINOP(Regular)")

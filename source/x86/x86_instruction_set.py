@@ -25,6 +25,6 @@ class CISCOperation(IInstruction):
 
 
 class RegMove(MoveInstruction):
-    def __init__(self, _code, _from=None, _to=None, _fromlist=None):
-        MoveInstruction.__init__(self, _from, _to, _fromlist)
+    def __init__(self, _code, _from=None, _to=None, _fromlist=None, pure_move=False):
+        super().__init__(_from, _to, _fromlist, pure_move)
         self.asm_code = _code

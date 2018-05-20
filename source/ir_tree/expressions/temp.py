@@ -18,6 +18,11 @@ class Temp(IExp):
     def __init__(self, name: str = None, local_id: int = None, temp: 'Temp' = None,
                  position: Position = Position(0, 0), unique_id: int = -1):
         IExp.__init__(self, position)
+        if name:
+            self.id = -1
+            self.local_id = -1
+            self.info_enum = InfoEnum.ID
+            self.unique = False
         if local_id is None and temp is None:
             self.id = Temp.counter
             Temp.counter += 1
@@ -42,6 +47,15 @@ class Temp(IExp):
             self.info_enum = temp.info_enum
             self.position = temp.position
             self.unique = temp.unique
+
+    def __eq__(self, other):
+        return other.id == self.id
+
+    def __ne__(self, other):
+        return other != self
+
+    def __hash__(self):
+        return hash(self.id)
 
     def is_commutative(self):
         return True
