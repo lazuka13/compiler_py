@@ -7,6 +7,10 @@ from ir_tree.translate.ir_builder import IRBuilder
 from ir_tree.translate.ir_printer import IRPrinter
 from ir_tree.translate.linearizer import Linearizer
 from ir_tree.translate.no_jump_block import NoJumpBlocksForest, NoJumpTree
+from reg_lifecycle.lifecycle_graph import LifecycleGraph
+from reg_lifecycle.lifecycle_printer import LifecyclePrinter
+from reg_lifecycle.variable_graph import VariableGraph
+from reg_lifecycle.variable_graph_printer import VariableGraphPrinter
 from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
@@ -119,12 +123,24 @@ if __name__ == '__main__':
     # распечатываем инструкции
 
     with open('../tests/output.asm', 'w', encoding='utf-8') as file:
+        graphs = []
+        lifecycle_printer = LifecyclePrinter('../tests/lifecycle.gv')
+        lifecycle_printer.print_prefix()
+        variable_printer = VariableGraphPrinter('../tests/variables.gv')
+        variable_printer.print_prefix()
         for tree_key, tree in reblocked.items():
             file.write(tree_key + '\n')
             file.write('-' * 10 + '\n')
             muncher = Muncher(tree)
             list = muncher.create_instructions_list()
+            lifecycle_graph = LifecycleGraph(list)
+            lifecycle_graph.build_Lifecycle()
+            lifecycle_printer.print(lifecycle_graph.nodes_list)
+            variables_graph = VariableGraph(lifecycle_graph)
+            variable_printer.print(variables_graph)
             for l in list.instructions:
-                file.write(l.format() + '\n')
+                file.write(l.format_long() + '\n')
             file.write('\n')
+        lifecycle_printer.print_postfix()
+        variable_printer.print_postfix()
     print()

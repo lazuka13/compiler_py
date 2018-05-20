@@ -37,10 +37,21 @@ class IInstruction:
             instruction_string += " r" + tmp.name + str(tmp.id) + ";"
         return instruction_string
 
+    def format_long(self):
+        instructionString = self.format()
+        instructionString += "\tUsed:"
+        for tmp in self.src:
+            instructionString += " r" + str(tmp.name) + str(tmp.id) + ";"
+            instructionString += "\tDefined:"
+        for tmp in self.dst:
+            instructionString += " r" + str(tmp.name) + str(tmp.id) + ";"
+        return instructionString;
+
 
 class MoveInstruction(IInstruction):
-    def __init__(self, _from=None, _to=None, _fromlist=None):
+    def __init__(self, _from=None, _to=None, _fromlist=None, pure_move=False):
         IInstruction.__init__(self)
+        self._pure_move = pure_move
         if _from or _to:
             if isinstance(_to, Temp):
                 self.dst.append(_to)
@@ -58,17 +69,27 @@ class MoveInstruction(IInstruction):
         else:
             raise NotImplementedError()
 
+    @property
+    def pure_move(self):
+        return self._pure_move
+
 
 class LabelInstruction(IInstruction):
-    def __init__(self, _label: Label):
+    def __init__(self, label: Label):
         IInstruction.__init__(self)
-        self.label_list.append(_label)
+        self._label = label
+
+    @property
+    def label(self):
+        return self._label
 
     def format(self):
-        return self.label_list[0].name + ":"
+        return self.label.name + ":"
 
 
 class InstructionList:
     def __init__(self):
         self.instructions = []
         self.registers = []
+
+
