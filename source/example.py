@@ -116,12 +116,15 @@ if __name__ == '__main__':
     printer.print_to_file()
     print()
 
-    for tree_key, tree in reblocked.items():
-        print(tree_key)
-        print("-"*10)
-        muncher = Muncher(tree)
-        list = muncher.create_instructions_list()
-        for l in list.instructions:
-            print(l.format(), end='')
-        print()
+    # распечатываем инструкции
+
+    with open('../tests/output.asm', 'w', encoding='utf-8') as file:
+        for tree_key, tree in reblocked.items():
+            file.write(tree_key + '\n')
+            file.write('-' * 10 + '\n')
+            muncher = Muncher(tree)
+            list = muncher.create_instructions_list()
+            for l in list.instructions:
+                file.write(l.format() + '\n')
+            file.write('\n')
     print()

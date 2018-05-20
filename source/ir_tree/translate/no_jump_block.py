@@ -146,8 +146,11 @@ class NoJumpBlock:
     def copy(cls, other: 'NoJumpBlock'):
         obj = cls(list())
         obj.tree = other.tree
+        other.tree = None
         obj.in_label = other.in_label
+        other.in_label = None
         obj.out_label = other.out_label
+        other.out_label = None
         return obj
 
     def release_tree(self) -> LinearTree:
@@ -171,29 +174,29 @@ BaseBlocks: List[NoJumpBlock] = list
 class NoJumpTree:
     def __init__(self, full_tree: LinearTree):
         self.blocks: BaseBlocks = list()
-        curr_tree: LinearTree = list()
+        self.curr_tree: LinearTree = list()
         while len(full_tree) > 0:
             in_visitor = InLabelVisitor()
             full_tree[0].accept(in_visitor)
-            if in_visitor.get_label() is not None and len(curr_tree) > 0:
-                self.add_with_jump_at_the_end(in_visitor.get_label(), curr_tree)
-                curr_tree = []
+            if in_visitor.get_label() is not None and len(self.curr_tree) > 0:
+                self.add_with_jump_at_the_end(in_visitor.get_label())
                 continue
-            curr_tree.append(full_tree[0])
+            self.curr_tree.append(full_tree[0])
             full_tree.pop(0)
             out_visitor = OutLabelVisitor()
-            curr_tree[-1].accept(out_visitor)
+            self.curr_tree[-1].accept(out_visitor)
             if out_visitor.get_label() is not None and len(full_tree) > 0:
-                curr_tree = self.add_ended_with(out_visitor.get_label(), curr_tree, full_tree)
+                self.add_ended_with(out_visitor.get_label(), full_tree)
                 continue
 
-        if len(curr_tree) > 0:
-            self.add_last(curr_tree)
+        if len(self.curr_tree) > 0:
+            self.add_last()
 
     @classmethod
     def copy(cls, other):
         obj = cls(list())
         obj.blocks = other.blocks
+        other.blocks = None
         return obj
 
     def build_tree(self) -> LinearTree:
@@ -213,33 +216,34 @@ class NoJumpTree:
         self.delete_unused_labels(tree)
         return tree
 
-    def add_with_jump_at_the_end(self, label: Label, curr_tree: LinearTree):
+    def add_with_jump_at_the_end(self, label: Label):
         out_visitor = OutLabelVisitor()
-        curr_tree[0].accept(out_visitor)
+        self.curr_tree[-1].accept(out_visitor)
         if out_visitor.get_label() != label:
-            curr_tree.append(Jump(label))
-        self.blocks.append(NoJumpBlock(curr_tree))
+            self.curr_tree.append(Jump(label))
+        self.blocks.append(NoJumpBlock(self.curr_tree))
+        self.curr_tree = list()
 
-    def add_ended_with(self, label: Label, curr_tree: LinearTree, full_tree: LinearTree) -> LinearTree:
+    def add_ended_with(self, label: Label, full_tree: LinearTree) -> None:
         if len(full_tree) == 0:
-            self.blocks.append(NoJumpBlock(curr_tree))
-            curr_tree = list()
-            return curr_tree  # reset curr_tree
+            self.blocks.append(NoJumpBlock(self.curr_tree))
+            self.curr_tree = list()
+            return
         in_visitor = InLabelVisitor()
         full_tree[0].accept(in_visitor)
         if in_visitor.get_label() == label:
-            self.blocks.append(NoJumpBlock(curr_tree))
-            curr_tree = list()
-            return curr_tree  # reset curr_tree
+            self.blocks.append(NoJumpBlock(self.curr_tree))
+            self.curr_tree = list()
+            return  # reset curr_tree
         label = Label.get_next_enumerated_label()
-        curr_tree.append(Jump(label))
-        self.blocks.append(NoJumpBlock(curr_tree))
-        curr_tree = list()
-        curr_tree.append(LabelStm(label))
-        return curr_tree  # reset curr_tree
+        self.curr_tree.append(Jump(label))
+        self.blocks.append(NoJumpBlock(self.curr_tree))
+        self.curr_tree = list()
+        self.curr_tree.append(LabelStm(label))
+        return  # reset curr_tree
 
-    def add_last(self, curr_tree: LinearTree):
-        self.blocks.append(NoJumpBlock(curr_tree))
+    def add_last(self):
+        self.blocks.append(NoJumpBlock(self.curr_tree))
 
     @staticmethod
     def delete_unused_labels(tree: LinearTree):
@@ -255,11 +259,12 @@ class NoJumpTree:
                 used_labels.add(out_visitor.get_label())
                 unused_labels.pop(out_visitor.get_label(), None)
             in_label = in_visitor.get_label()
-            if in_label is not None and in_label in used_labels:
+            if in_label is not None and in_label not in used_labels:
                 if in_label not in unused_labels:
                     unused_labels[in_label] = list()
                 unused_labels[in_label].append(i)
         indexes = set()
+
         for key, value in unused_labels.items():
             for pos in value:
                 indexes.add(pos)
