@@ -9,13 +9,13 @@ from ir_tree.translate.linearizer import Linearizer
 from ir_tree.translate.no_jump_block import NoJumpBlocksForest, NoJumpTree
 from reg_lifecycle.lifecycle_graph import LifecycleGraph
 from reg_lifecycle.lifecycle_printer import LifecyclePrinter
-from reg_lifecycle.variable_graph import VariableGraph
+from reg_lifecycle.variable_graph import VariableGraph, Temp
 from reg_lifecycle.variable_graph_printer import VariableGraphPrinter
 from symbol_table.table import Table
 from symbol_table.table_filler import TableFiller
 from syntax_tree import Printer
 from type_checker.type_checker import TypeChecker
-from x86.x86_code_generation import Muncher
+from x86.x86_code_generation import Muncher, RegMove
 from yacc import parse_program
 
 if __name__ == '__main__':
@@ -133,11 +133,51 @@ if __name__ == '__main__':
             file.write('-' * 10 + '\n')
             muncher = Muncher(tree)
             list = muncher.create_instructions_list()
-            lifecycle_graph = LifecycleGraph(list)
-            lifecycle_graph.build_Lifecycle()
-            lifecycle_printer.print(lifecycle_graph.nodes_list)
-            variables_graph = VariableGraph(lifecycle_graph)
-            variable_printer.print(variables_graph)
+
+            iteration = 0
+            fp = Temp('my_fp')
+            while True:
+                lifecycle_graph = LifecycleGraph(list)
+                lifecycle_graph.build_Lifecycle()
+                variables_graph = VariableGraph(lifecycle_graph, fp)
+                bad_node = variables_graph._bad_node
+
+                if bad_node is None:
+                    lifecycle_printer.print(lifecycle_graph.nodes_list)
+                    variable_printer.print(variables_graph)
+                    break
+                else:
+                    if iteration == 100:
+                        lifecycle_printer.print(lifecycle_graph.nodes_list)
+                        variable_printer.print(variables_graph)
+                        print('100 iters')
+                        break
+                    iteration += 1
+                    temp_read = 0
+                    temp_push = 0
+                    i = 0
+                    while i < len(list.instructions):
+                        for var in list.instructions[i].src:
+                            if var == bad_node.reg:
+                                list.instructions[i].remove_used(var)
+                                list.registers.append(Temp("Temp read from stack: " + str(temp_read)))
+                                temp_read += 1
+                                list.instructions[i].add_used(list.registers[-1])
+                                list.instructions = list.instructions[:i] + [
+                                    RegMove('MOV %0 [%1]', fp, list.registers[-1])] + list.instructions[i:]
+                                i += 1
+                                break
+                        for var in list.instructions[i].dst:
+                            if var == bad_node.reg:
+                                list.instructions[i].remove_defined(var)
+                                list.registers.append(Temp("Temp push to stack: " + str(temp_push)))
+                                temp_push += 1
+                                list.instructions[i].add_defined(list.registers[-1])
+                                list.instructions = list.instructions[:i] + [
+                                    RegMove('MOV %0 [%1]', list.registers[-1], fp)] + list.instructions[i:]
+                                i += 1
+                                break
+                        i += 1
             for l in list.instructions:
                 file.write(l.format_long() + '\n')
             file.write('\n')

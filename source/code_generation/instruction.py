@@ -12,6 +12,22 @@ class IInstruction:
         self.label_list = LabelList()
         self.asm_code = None
 
+    def add_used(self, used: Temp):
+        self.src.append(used)
+
+    def remove_used(self, used: Temp):
+        prev_len = len(self.src)
+        self.src.remove(used)
+        assert len(self.src) - prev_len == 1
+
+    def add_defined(self, defined: Temp):
+        self.dst.append(defined)
+
+    def remove_defined(self, defined: Temp):
+        prev_len = len(self.dsy)
+        self.src.remove(defined)
+        assert len(self.dst) - prev_len == 1
+
     def format(self):
         instruction_string = ''
         prev_pivot = 0
@@ -45,7 +61,7 @@ class IInstruction:
             instructionString += "\tDefined:"
         for tmp in self.dst:
             instructionString += " r" + str(tmp.name) + str(tmp.id) + ";"
-        return instructionString;
+        return instructionString
 
 
 class MoveInstruction(IInstruction):
@@ -91,5 +107,3 @@ class InstructionList:
     def __init__(self):
         self.instructions = []
         self.registers = []
-
-

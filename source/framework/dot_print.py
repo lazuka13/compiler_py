@@ -17,16 +17,22 @@ class DotPrint(object):
     def add_arrow(self, name, dashed=False):
         self.arrows.append(self.Arrow('"' + self.parent_name + '"', '"' + name + '"', dashed))
 
-    def add_node(self, label):
+    def add_node(self, label, color=None):
         name = "name" + str(self.node_counter)
-        self.dot.write('"{name}" [\nlabel = "<f0> {label}"\nshape = "record"\n];\n'.format(name=name, label=label))
+        if color is None:
+            self.dot.write('"{name}" [\nlabel = "{label}"\nshape = "record"\n];\n'.format(name=name, label=label))
+        else:
+            self.dot.write('"{name}" [\nlabel = "{label}"\nshape = "circle"\ncolor = "{color}" style="filled"];\n'.format(
+                name=name, label=label, color=color
+            ))
         self.node_counter += 1
         return name
 
     def print_arrows(self, direct=True):
-        for i in range(len(self.arrows)):
-            arrow = self.arrows[i]
+        for i, arrow in enumerate(self.arrows):
             self.dot.write(arrow._from)
             self.dot.write((' -> ' if direct else ' -- '))
             self.dot.write(arrow._to)
-            self.dot.write('[ \n' + ('style=dashed ' if arrow._dashed else '') + 'id = ' + str(i) + '\n];\n')
+            self.dot.write(
+                '[ \n' + ('style=dashed ' if arrow._dashed else '') + 'id = ' + str(i) + '\npenwidth=4.0\n];\n'
+            )
